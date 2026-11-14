@@ -120,3 +120,75 @@ source_backends:
     bm25_rpc: match_biorxiv_papers_bm25
     sync_table: ''
     sync_success_value: ''
+journal_sources:
+  enabled: true
+  lookback_days: 30
+  exclude_types:
+  - editorial
+  - paratext
+  - erratum
+  - letter
+  - retraction
+  journals:
+  - name: The Lancet
+    issn: 0140-6736
+  - name: Journal of Sport and Health Science
+    issn: 2095-2546
+  - name: International Journal of Behavioral Nutrition and Physical Activity
+    issn: 1479-5868
+  - name: British Journal of Sports Medicine
+    issn: 0306-3674
+  - name: Sports Medicine
+    issn: 0112-1642
+  - name: Medicine & Science in Sports & Exercise
+    issn: 0195-9131
+  - name: Scandinavian Journal of Medicine & Science in Sports
+    issn: 0905-7188
+  - name: Journal of Science and Medicine in Sport
+    issn: 1440-2440
+  - name: Journal of Sports Sciences
+    issn: 0264-0414
+  - name: International Journal of Sports Physiology and Performance
+    issn: 1555-0265
+  - name: European Journal of Sport Science
+    issn: 1746-1391
+  - name: The American Journal of Sports Medicine
+    issn: 0363-5465
+  - name: Exercise and Sport Sciences Reviews
+    issn: 0091-6331
+  - name: Psychology of Sport and Exercise
+    issn: 1469-0292
+  - name: Sports Medicine - Open
+    issn: 2199-1170
+  - name: Research Quarterly for Exercise and Sport
+    issn: 0270-1367
+  - name: Journal of Physical Activity and Health
+    issn: 1543-3080
+  - name: Sports Engineering
+    issn: 1369-7072
+  - name: Sports Biomechanics
+    issn: 1476-3141
+  - name: Journal of Teaching in Physical Education
+    issn: 0273-5024
+  - name: Physical Education and Sport Pedagogy
+    issn: 1740-8989
+  - name: Sport, Education and Society
+    issn: 1357-3322
+  - name: Quest
+    issn: 0033-6297
+  - name: Computers & Education
+    issn: 0360-1315
+  - name: British Journal of Educational Technology
+    issn: 0007-1013
+  - name: Educational Research Review
+    issn: 1747-938X
+  - name: Review of Educational Research
+    issn: 0034-6543
+  - name: Journal of Educational Psychology
+    issn: 0022-0663
+  - name: Learning and Instruction
+    issn: 0959-4752
+  - name: Educational Psychology Review
+    issn: 1040-726X
+  - name: Teaching and Teacher Education
+    issn: 0742-051X
