@@ -1,0 +1,24 @@
+{
+  "label": "2026-11-14",
+  "date": "2026-11-14",
+  "generated_at": "2026-11-14T07:07:14",
+  "count": 1,
+  "papers": [
+    {
+      "paper_id": "202611/14/2611.17024v1-clustering-professional-football-players-using-gaussian-mixture-models-a-case-study-of-the-english-premier-league-202425",
+      "section": "deep",
+      "title_en": "Clustering professional football players using Gaussian mixture models: A case study of the English Premier League 2024/25",
+      "authors": "Harry O'Donnell, Antony M. Overstall",
+      "date": "2026-11-12",
+      "pdf": "https://arxiv.org/pdf/2611.17024v1",
+      "score": "9.0",
+      "evidence": "用高斯混合模型对足球表现数据聚类以识别球员类型",
+      "tldr": "针对足球球员角色常被硬聚类归为单一类型、难以刻画混合角色的问题，研究基于2024/25英超314名非门将球员的表现数据，对主成分表示应用高斯混合模型（GMM）进行概率聚类。全样本识别出7种球员原型，后验成员概率揭示跨簇混合角色与战术灵活性，并在后卫、中场、前锋内部恢复位置特异子原型和异常值。该框架以概率成员量化归属不确定性，为招募与战术决策提供可解释工具，并可迁移至其他运动领域。",
+      "tags": "query:sports-ai",
+      "abstract_en": "The increasing availability of detailed football performance data has created new opportunities for identifying player archetypes and informing recruitment and tactical decision-making. Most existing clustering approaches assign each player to a single group, despite the reality that many modern footballers perform hybrid roles spanning multiple stylistic categories. Performance data for 314 outfield players from the 2024/25 English Premier League season are analysed using a Gaussian mixture model (GMM) applied to principal component representations of player statistics. Unlike hard-assignment methods such as k-means, the GMM provides probabilistic cluster memberships, allowing uncertainty and role hybridity to be quantified. Seven player archetypes are identified in the full dataset. Posterior membership probabilities reveal a subset of players whose profiles span multiple clusters, providing an objective measure of tactical flexibility and stylistic ambiguity. Further analyses within defender, midfielder, and forward groups recover position-specific sub-archetypes and highlight exceptional outliers. The results demonstrate that model-based clustering provides a flexible and interpretable framework for identifying latent structure in high-dimensional performance data while explicitly quantifying uncertainty in cluster membership. More broadly, the approach is readily transferable to other sports and domains in which individuals exhibit overlapping characteristics and cannot be adequately represented by hard cluster assignments alone.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

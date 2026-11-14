@@ -1,0 +1,52 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-11-14T07:06:35.944989+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 0,
+    "quick_skim_target": 11,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2611.17024v1",
+      "source": "arxiv",
+      "title": "Clustering professional football players using Gaussian mixture models: A case study of the English Premier League 2024/25",
+      "abstract": "The increasing availability of detailed football performance data has created new opportunities for identifying player archetypes and informing recruitment and tactical decision-making. Most existing clustering approaches assign each player to a single group, despite the reality that many modern footballers perform hybrid roles spanning multiple stylistic categories. Performance data for 314 outfield players from the 2024/25 English Premier League season are analysed using a Gaussian mixture model (GMM) applied to principal component representations of player statistics. Unlike hard-assignment methods such as k-means, the GMM provides probabilistic cluster memberships, allowing uncertainty and role hybridity to be quantified. Seven player archetypes are identified in the full dataset. Posterior membership probabilities reveal a subset of players whose profiles span multiple clusters, providing an objective measure of tactical flexibility and stylistic ambiguity. Further analyses within defender, midfielder, and forward groups recover position-specific sub-archetypes and highlight exceptional outliers. The results demonstrate that model-based clustering provides a flexible and interpretable framework for identifying latent structure in high-dimensional performance data while explicitly quantifying uncertainty in cluster membership. More broadly, the approach is readily transferable to other sports and domains in which individuals exhibit overlapping characteristics and cannot be adequately represented by hard cluster assignments alone.",
+      "authors": [
+        "Harry O'Donnell",
+        "Antony M. Overstall"
+      ],
+      "primary_category": "stat.AP",
+      "categories": [
+        "stat.AP"
+      ],
+      "published": "2026-11-12 16:12:24+00:00",
+      "link": "https://arxiv.org/pdf/2611.17024v1",
+      "tags": [
+        "keyword:sports-ai",
+        "query:sports-ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Gaussian mixture clustering of football performance data for player archetypes",
+      "llm_evidence_cn": "用高斯混合模型对足球表现数据聚类以识别球员类型",
+      "llm_evidence": "用高斯混合模型对足球表现数据聚类以识别球员类型",
+      "canonical_evidence": "用高斯混合模型对足球表现数据聚类以识别球员类型",
+      "llm_tldr_en": "Detailed football performance data enables player archetype discovery, but hard clustering ignores hybrid roles. A Gaussian mixture model on PCA features of Premier League stats gives probabilistic role memberships informing recruitment and tactics.",
+      "llm_tldr_cn": "足球表现数据日益丰富，为识别球员类型与辅助选材和战术决策提供机会，但现有聚类多为硬划分，难以反映混合角色。作者对2024/25赛季英超314名非门将球员的统计数据进行主成分降维，再用高斯混合模型给出概率化聚类归属，从而刻画角色不确定性。案例结果显示该方法能揭示跨类别混合型球员。该工作为体育表现评估与人才分析提供了可解释的聚类工具。",
+      "llm_tldr": "足球表现数据日益丰富，为识别球员类型与辅助选材和战术决策提供机会，但现有聚类多为硬划分，难以反映混合角色。作者对2024/25赛季英超314名非门将球员的统计数据进行主成分降维，再用高斯混合模型给出概率化聚类归属，从而刻画角色不确定性。案例结果显示该方法能揭示跨类别混合型球员。该工作为体育表现评估与人才分析提供了可解释的聚类工具。",
+      "llm_tags": [
+        "query:sports-ai"
+      ],
+      "matched_query_tag": "query:sports-ai",
+      "matched_query_text": "artificial intelligence methods for sports analytics and performance evaluation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}

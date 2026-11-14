@@ -1,0 +1,25 @@
+{
+  "date": "20261114",
+  "date_label": "",
+  "generated_at": "2026-11-14 07:07:11 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2611.17024v1",
+      "route": "202611/14/2611.17024v1-clustering-professional-football-players-using-gaussian-mixture-models-a-case-study-of-the-english-premier-league-202425",
+      "title": "Clustering professional football players using Gaussian mixture models: A case study of the English Premier League 2024/25",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sports-ai"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "用高斯混合模型对足球表现数据聚类以识别球员类型",
+      "first_seen_at": "2026-11-14 07:07:11 UTC",
+      "updated_at": "2026-11-14 07:07:11 UTC"
+    }
+  ]
+}
