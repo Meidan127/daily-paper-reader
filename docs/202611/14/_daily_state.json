@@ -1,9 +1,9 @@
 {
   "date": "20261114",
   "date_label": "",
-  "generated_at": "2026-11-14 14:14:00 UTC",
+  "generated_at": "2026-11-14 23:29:22 UTC",
   "recommend_exists": true,
-  "run_count": 2,
+  "run_count": 3,
   "papers": [
     {
       "paper_id": "journal-w7225307012",
@@ -68,6 +68,38 @@
       "evidence": "可穿戴足底压力传感器结合可解释机器学习预测膝关节力矩",
       "first_seen_at": "2026-11-14 14:14:00 UTC",
       "updated_at": "2026-11-14 14:14:00 UTC"
+    },
+    {
+      "paper_id": "journal-w7226019113",
+      "route": "202611/14/journal-w7226019113-predicting-military-training-outcome-a-prospective-cohort-study-of-supervised-statistical-learning-classification-methods-in-british-army-recruits",
+      "title": "Predicting Military Training Outcome: A Prospective Cohort Study of Supervised Statistical Learning Classification Methods in British Army Recruits",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sports-ai"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "使用随机森林、梯度提升等监督学习模型预测训练损伤与失败",
+      "first_seen_at": "2026-11-14 23:29:22 UTC",
+      "updated_at": "2026-11-14 23:29:22 UTC"
+    },
+    {
+      "paper_id": "journal-w7225997196",
+      "route": "202611/14/journal-w7225997196-running-the-numbers-high-metabolic-load-distance-as-an-alternative-to-traditional-external-load-metrics-in-elite-womens-football",
+      "title": "Running the Numbers: High Metabolic Load Distance as an Alternative to Traditional External Load Metrics in Elite Women's Football",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sports-ai"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "利用GPS可穿戴设备监测负荷并结合主观疲劳与健康状态评估",
+      "first_seen_at": "2026-11-14 23:29:22 UTC",
+      "updated_at": "2026-11-14 23:29:22 UTC"
     },
     {
       "paper_id": "journal-w7221832279",
