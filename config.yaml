@@ -25,3 +25,57 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: sports-ai
+      description: 体育中的人工智能
+      enabled: true
+      paper_sources:
+        - arxiv
+        - biorxiv
+      keywords:
+        - keyword: sports analytics
+          keyword_cn: 体育分析
+          query: artificial intelligence methods for sports analytics and performance evaluation
+        - keyword: wearable sensors
+          keyword_cn: 可穿戴传感器
+          query: Wearable sensor data used by artificial intelligence models to assess athlete workload and recovery
+        - keyword: wearable sensor data
+          keyword_cn: 可穿戴传感器数据
+          query: AI analysis of wearable sensor data for athlete monitoring and workload tracking
+        - keyword: explainable sports analytics
+          keyword_cn: 可解释体育分析
+          query: explainable artificial intelligence methods for transparent sports analytics and coaching decisions
+      intent_queries:
+        - query: Identify machine learning methods for predicting sports injuries and monitoring athlete health.
+          query_cn: 识别用于预测运动伤病和监测运动员健康的机器学习方法。
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-11-14T03:55:08.566Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
+  biorxiv:
+    papers_table: biorxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_biorxiv_papers_exact
+    vector_rpc_exact: match_biorxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_biorxiv_papers_bm25
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
