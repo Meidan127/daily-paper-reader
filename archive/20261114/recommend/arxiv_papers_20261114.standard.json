@@ -1,52 +1,177 @@
 {
   "mode": "standard",
-  "generated_at": "2026-11-14T07:06:35.944989+00:00",
+  "generated_at": "2026-11-14T14:11:36.467950+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 1,
-    "deep_divecandidates": 1,
+    "deep_divecandidates": 3,
     "deep_cap": 6,
-    "deep_selected": 1,
-    "quick_candidates": 0,
+    "deep_selected": 3,
+    "quick_candidates": 1,
     "quick_skim_target": 11,
-    "quick_selected": 0
+    "quick_selected": 1
   },
   "deep_dive": [
     {
-      "id": "2611.17024v1",
-      "source": "arxiv",
-      "title": "Clustering professional football players using Gaussian mixture models: A case study of the English Premier League 2024/25",
-      "abstract": "The increasing availability of detailed football performance data has created new opportunities for identifying player archetypes and informing recruitment and tactical decision-making. Most existing clustering approaches assign each player to a single group, despite the reality that many modern footballers perform hybrid roles spanning multiple stylistic categories. Performance data for 314 outfield players from the 2024/25 English Premier League season are analysed using a Gaussian mixture model (GMM) applied to principal component representations of player statistics. Unlike hard-assignment methods such as k-means, the GMM provides probabilistic cluster memberships, allowing uncertainty and role hybridity to be quantified. Seven player archetypes are identified in the full dataset. Posterior membership probabilities reveal a subset of players whose profiles span multiple clusters, providing an objective measure of tactical flexibility and stylistic ambiguity. Further analyses within defender, midfielder, and forward groups recover position-specific sub-archetypes and highlight exceptional outliers. The results demonstrate that model-based clustering provides a flexible and interpretable framework for identifying latent structure in high-dimensional performance data while explicitly quantifying uncertainty in cluster membership. More broadly, the approach is readily transferable to other sports and domains in which individuals exhibit overlapping characteristics and cannot be adequately represented by hard cluster assignments alone.",
+      "id": "journal-w7225307012",
+      "source": "journal",
+      "title": "Machine learning-based diagnostic decision support for suspected anterior cruciate ligament tears in clinically evaluated athletes",
+      "abstract": "Anterior cruciate ligament tears (ACLT) may be difficult to identify at the initial clinical encounter because acute symptoms can limit examination and access to diagnostic tools may be constrained. This study evaluated supervised machine-learning models for ACLT decision support using routinely available initial clinical data. Data from 196 athletes with suspected ACLT (146 confirmed ACLT; 50 symptomatic non-ACLT) were represented by seven manually annotated binary clinical predictors. Participants were stratified into training (n = 137) and independent held-out evaluation (n = 59) sets. Eight classifiers were optimized using nested cross-validation within the training set and evaluated using accuracy, precision, recall, F1-score, and receiver operating characteristic area under the curve (ROC-AUC). Classification used a training-derived F1-optimal threshold of 0.50. Optuna-tuned XGBoost achieved the highest ROC-AUC (0.962) and F1-score (94.25%); XGBoost, support vector machine, and k-nearest neighbors achieved the highest recall (93.18%). SHAP analysis of XGBoost identified joint effusion as the strongest contributor to model output. These findings indicate that supervised machine-learning models based exclusively on initial clinical variables may support ACLT assessment at first presentation. Prospective external validation is required before clinical implementation.",
       "authors": [
-        "Harry O'Donnell",
-        "Antony M. Overstall"
+        "Fatma Mrad",
+        "Khaled Trabelsi",
+        "Asma Aloui",
+        "Rihab Al Abaidia",
+        "Achraf Ammar",
+        "Haitham Jahrami",
+        "Nafaa Souissi"
       ],
-      "primary_category": "stat.AP",
+      "primary_category": "Journal of Sports Sciences",
       "categories": [
-        "stat.AP"
+        "Journal of Sports Sciences"
       ],
-      "published": "2026-11-12 16:12:24+00:00",
-      "link": "https://arxiv.org/pdf/2611.17024v1",
+      "published": "2026-11-04T00:00:00+00:00",
+      "link": "https://doi.org/10.1080/02640414.2026.2753816",
       "tags": [
         "keyword:sports-ai",
         "query:sports-ai"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "Gaussian mixture clustering of football performance data for player archetypes",
-      "llm_evidence_cn": "用高斯混合模型对足球表现数据聚类以识别球员类型",
-      "llm_evidence": "用高斯混合模型对足球表现数据聚类以识别球员类型",
-      "canonical_evidence": "用高斯混合模型对足球表现数据聚类以识别球员类型",
-      "llm_tldr_en": "Detailed football performance data enables player archetype discovery, but hard clustering ignores hybrid roles. A Gaussian mixture model on PCA features of Premier League stats gives probabilistic role memberships informing recruitment and tactics.",
-      "llm_tldr_cn": "足球表现数据日益丰富，为识别球员类型与辅助选材和战术决策提供机会，但现有聚类多为硬划分，难以反映混合角色。作者对2024/25赛季英超314名非门将球员的统计数据进行主成分降维，再用高斯混合模型给出概率化聚类归属，从而刻画角色不确定性。案例结果显示该方法能揭示跨类别混合型球员。该工作为体育表现评估与人才分析提供了可解释的聚类工具。",
-      "llm_tldr": "足球表现数据日益丰富，为识别球员类型与辅助选材和战术决策提供机会，但现有聚类多为硬划分，难以反映混合角色。作者对2024/25赛季英超314名非门将球员的统计数据进行主成分降维，再用高斯混合模型给出概率化聚类归属，从而刻画角色不确定性。案例结果显示该方法能揭示跨类别混合型球员。该工作为体育表现评估与人才分析提供了可解释的聚类工具。",
+      "llm_evidence_en": "Supervised ML classifiers support ACL tear diagnosis in athletes",
+      "llm_evidence_cn": "监督机器学习分类器辅助运动员前交叉韧带撕裂诊断",
+      "llm_evidence": "监督机器学习分类器辅助运动员前交叉韧带撕裂诊断",
+      "canonical_evidence": "监督机器学习分类器辅助运动员前交叉韧带撕裂诊断",
+      "llm_tldr_en": "Develops supervised machine-learning decision support for suspected ACL tears using routine clinical predictors, with nested cross-validation and independent held-out evaluation in athletes.",
+      "llm_tldr_cn": "该研究针对前交叉韧带撕裂在初诊时难以识别、影像与检查受限的问题，构建基于常规临床数据的机器学习诊断决策支持。研究纳入196名疑似运动员，用七个二分类临床预测变量训练八种分类器，并采用嵌套交叉验证与独立留出集评估。结果显示机器学习模型可辅助前交叉韧带撕裂识别，为运动损伤诊疗提供数据驱动工具。",
+      "llm_tldr": "该研究针对前交叉韧带撕裂在初诊时难以识别、影像与检查受限的问题，构建基于常规临床数据的机器学习诊断决策支持。研究纳入196名疑似运动员，用七个二分类临床预测变量训练八种分类器，并采用嵌套交叉验证与独立留出集评估。结果显示机器学习模型可辅助前交叉韧带撕裂识别，为运动损伤诊疗提供数据驱动工具。",
+      "llm_tags": [
+        "query:sports-ai"
+      ],
+      "matched_query_tag": "query:sports-ai",
+      "matched_query_text": "Identify machine learning methods for predicting sports injuries and monitoring athlete health.",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "journal-w7225449358",
+      "source": "journal",
+      "title": "Sex-Equitable Machine Learning Prediction of Ankle Reinjury in Individuals with Chronic Ankle Instability: A 2-Year Prospective Cohort Study with Fairness Audit",
+      "abstract": "BACKGROUND: Patients with chronic ankle instability (CAI) face a 2-year reinjury rate approaching 50%, but individualized prediction models that quantify which baseline impairments predict subsequent reinjury within an established CAI cohort remain scarce, and existing prediction models for ankle injury have not assessed sex-related fairness. The aim was to develop and internally validate sex-equitable machine learning (ML) models predicting 2-year ankle reinjury in individuals with CAI, identify the most influential baseline prognostic markers, and audit sex-stratified model performance. METHODS: One hundred physically active individuals (50 male, 50 female) with CAI (mean age 21.8 ± 2.3 years) were recruited from a university population between February 2017 and February 2018 and prospectively followed for 2 years; 96 (49 male, 47 female) with at least one follow-up response were retained for analysis (41 reinjury events, 43% reinjury rate). Fourteen baseline predictors spanning demographic, anthropometric, injury-history, patient-reported, biomechanical, postural-control, and functional-performance domains were collected. Six algorithms were trained with nested cross-validation: an unpenalized logistic regression baseline and five ML algorithms (Elastic Net, support vector machine, random forest, XGBoost, LightGBM). Predictive contribution of each feature was quantified using Shapley additive explanations and partial-dependence plots. A pre-specified fairness audit compared single global and sex-specific Youden thresholds derived out-of-fold using the equalized-odds gap and disproportionate-impact ratio. RESULTS: All algorithms achieved area under the curve (AUC) values above 0.70; Elastic Net was selected as the primary model (AUC = 0.807, 95% CI 0.714-0.893; calibration slope = 1.015). Sex, arch height index, previous sprains, dorsiflexion range of motion, and Biodex Overall Stability Index consistently emerged as the most influential prognostic markers. Within-sex discrimination was comparable between males and females, but a single global threshold produced an equalized-odds gap of 0.384 that was reduced by 57% (to 0.164) through sex-specific thresholding without retraining the model. CONCLUSIONS: ML models with a fairness-audited threshold strategy predicted 2-year ankle reinjury in individuals with CAI, reducing the equalized-odds gap by 57%, though the disproportionate-impact ratio (0.683) remained below the 0.80 benchmark. External validation is required before clinical deployment.",
+      "authors": [
+        "Ui‐jae Hwang",
+        "Seong Jun Son",
+        "Siu-Ngor Fu",
+        "Arnold Yu Lok Wong",
+        "Dustin A. Bruening",
+        "Brent Feland",
+        "Martha Seeley",
+        "J. Ty Hopkins"
+      ],
+      "primary_category": "Sports Medicine - Open",
+      "categories": [
+        "Sports Medicine - Open"
+      ],
+      "published": "2026-11-07T00:00:00+00:00",
+      "link": "https://doi.org/10.1186/s40798-026-01137-3",
+      "tags": [
+        "keyword:sports-ai",
+        "query:sports-ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "machine learning models predicting 2-year ankle reinjury with fairness audit",
+      "llm_evidence_cn": "机器学习模型预测两年踝关节再损伤并进行公平性审计",
+      "llm_evidence": "机器学习模型预测两年踝关节再损伤并进行公平性审计",
+      "canonical_evidence": "机器学习模型预测两年踝关节再损伤并进行公平性审计",
+      "llm_tldr_en": "Develops and internally validates sex-equitable machine learning models predicting 2-year ankle reinjury in chronic ankle instability, identifying prognostic markers and auditing fairness.",
+      "llm_tldr_cn": "慢性踝关节不稳患者两年内再损伤率接近50%，但缺乏个体化预测模型且未评估性别公平性。作者纳入100名受试者，开发并内部验证预测两年再损伤的机器学习模型，识别最具影响的基线预后指标，并按性别分层审计模型表现。结果显示模型可有效预测再损伤并揭示关键预后因素。该研究将机器学习用于运动损伤预测与健康监测，兼具公平性考量。",
+      "llm_tldr": "慢性踝关节不稳患者两年内再损伤率接近50%，但缺乏个体化预测模型且未评估性别公平性。作者纳入100名受试者，开发并内部验证预测两年再损伤的机器学习模型，识别最具影响的基线预后指标，并按性别分层审计模型表现。结果显示模型可有效预测再损伤并揭示关键预后因素。该研究将机器学习用于运动损伤预测与健康监测，兼具公平性考量。",
+      "llm_tags": [
+        "query:sports-ai"
+      ],
+      "matched_query_tag": "query:sports-ai",
+      "matched_query_text": "Identify machine learning methods for predicting sports injuries and monitoring athlete health.",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "journal-w7224906290",
+      "source": "journal",
+      "title": "Wearable Sensor‐Based Prediction of Knee Joint Moments in Competitive Rugby Players During Multidirectional Movements",
+      "abstract": "ABSTRACT This study aimed to develop an interpretable machine learning framework using plantar‐pressure sensors to estimate knee moments during rugby‐specific movements. A total of 31 North American competitive rugby players were recruited to perform four common rugby movements on an infilled artificial turf surface in a motion capture laboratory. Synchronized data acquisition was performed for plantar pressure, motion capture, and ground reaction forces. Knee moments were calculated via inverse dynamics. Genetic Algorithm‐Deep Forest Regression (GA‐DFR) was used to select plantar‐pressure sensors and predict resultant moments within participant‐level nested cross‐validation. Four alternative models predicted the resultant using the same layouts and participant splits. Complementary deep forest regression (DFR) models predicted the three moment components using these layouts. SHapley Additive exPlanations (SHAP) interpreted held‐out predictions. Layouts contained 7–18 sensors. Pooled resultant R 2 was 0.795, with root mean square error of 0.0512 N·m/N. DFR performed better than linear regression and the convolutional neural network, with no significant differences from the deep neural network or long short‐term memory network. Pooled R 2 was 0.806, 0.662, and 0.675 for flexion‐extension, adduction‐abduction, and internal‐external rotation moments, respectively. Resultant temporal SHAP contributions exceeded their stance‐wide mean during 9%–55% of stance, peaking at 24%. Reduced plantar‐pressure inputs supported estimation of resultant and direction‐specific knee‐moment waveforms in unseen rugby players.",
+      "authors": [
+        "Zixiang Gao",
+        "Robin Trama",
+        "David Mcnish",
+        "Michael Esposito",
+        "Jake Ruschkowski",
+        "Darren John Stefanyshyn",
+        "John William Wannop"
+      ],
+      "primary_category": "Scandinavian Journal of Medicine and Science in Sports",
+      "categories": [
+        "Scandinavian Journal of Medicine and Science in Sports"
+      ],
+      "published": "2026-10-30T00:00:00+00:00",
+      "link": "https://doi.org/10.1111/sms.70391",
+      "tags": [
+        "keyword:sports-ai",
+        "query:sports-ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "wearable plantar-pressure sensors with interpretable machine learning to predict knee moments",
+      "llm_evidence_cn": "可穿戴足底压力传感器结合可解释机器学习预测膝关节力矩",
+      "llm_evidence": "可穿戴足底压力传感器结合可解释机器学习预测膝关节力矩",
+      "canonical_evidence": "可穿戴足底压力传感器结合可解释机器学习预测膝关节力矩",
+      "llm_tldr_en": "Develops an interpretable machine learning framework using wearable plantar-pressure sensors to estimate knee joint moments in rugby players during sport-specific movements.",
+      "llm_tldr_cn": "膝关节力矩评估通常依赖实验室动作捕捉与测力台，难以在真实训练场景中普及。本研究招募31名竞技橄榄球运动员完成四种变向动作，同步采集足底压力、动作捕捉与地面反作用力，并以逆动力学计算膝关节力矩。作者提出遗传算法结合深度森林回归的可解释框架，用于筛选压力传感器并预测力矩，在受试者级嵌套交叉验证下与四种替代模型比较。结果表明可穿戴传感器配合可解释机器学习可有效估计关节负荷，为运动损伤风险监测提供实用工具。",
+      "llm_tldr": "膝关节力矩评估通常依赖实验室动作捕捉与测力台，难以在真实训练场景中普及。本研究招募31名竞技橄榄球运动员完成四种变向动作，同步采集足底压力、动作捕捉与地面反作用力，并以逆动力学计算膝关节力矩。作者提出遗传算法结合深度森林回归的可解释框架，用于筛选压力传感器并预测力矩，在受试者级嵌套交叉验证下与四种替代模型比较。结果表明可穿戴传感器配合可解释机器学习可有效估计关节负荷，为运动损伤风险监测提供实用工具。",
+      "llm_tags": [
+        "query:sports-ai"
+      ],
+      "matched_query_tag": "query:sports-ai",
+      "matched_query_text": "AI analysis of wearable sensor data for athlete monitoring and workload tracking",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "journal-w7221832279",
+      "source": "journal",
+      "title": "Throwing4: phase-aware pose modeling for throw-distance prediction in elite athletics",
+      "abstract": "",
+      "authors": [
+        "Bikash Kumar Badatya",
+        "Kartike Tiwari",
+        "Jyotirmoy Amin",
+        "Ravi Hegde"
+      ],
+      "primary_category": "Sports Engineering",
+      "categories": [
+        "Sports Engineering"
+      ],
+      "published": "2026-10-26T00:00:00+00:00",
+      "link": "https://doi.org/10.1007/s12283-026-00573-4",
+      "tags": [
+        "keyword:sports-ai",
+        "query:sports-ai"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "phase-aware pose modeling for throw-distance prediction, AI for performance evaluation",
+      "llm_evidence_cn": "阶段感知姿态建模预测投掷距离，属运动表现评估的人工智能方法",
+      "llm_evidence": "阶段感知姿态建模预测投掷距离，属运动表现评估的人工智能方法",
+      "canonical_evidence": "阶段感知姿态建模预测投掷距离，属运动表现评估的人工智能方法",
+      "llm_tldr_en": "Proposes a phase-aware pose modeling approach to predict throw distance in elite athletics, linking movement phases to performance outcomes.",
+      "llm_tldr_cn": "田径投掷项目的成绩预测通常依赖教练经验与少量手工指标，难以充分利用动作过程信息。本文提出Throwing4框架，将投掷动作分解为多个阶段并进行姿态建模，从中提取与投掷距离相关的运动学特征用于预测。该工作把计算机视觉姿态估计与阶段感知建模结合，用于精英运动员的成绩评估。其意义在于为运动表现分析提供可自动化的技术路径，但摘要信息有限，具体实验与结果尚待补充。",
+      "llm_tldr": "田径投掷项目的成绩预测通常依赖教练经验与少量手工指标，难以充分利用动作过程信息。本文提出Throwing4框架，将投掷动作分解为多个阶段并进行姿态建模，从中提取与投掷距离相关的运动学特征用于预测。该工作把计算机视觉姿态估计与阶段感知建模结合，用于精英运动员的成绩评估。其意义在于为运动表现分析提供可自动化的技术路径，但摘要信息有限，具体实验与结果尚待补充。",
       "llm_tags": [
         "query:sports-ai"
       ],
       "matched_query_tag": "query:sports-ai",
       "matched_query_text": "artificial intelligence methods for sports analytics and performance evaluation",
       "matched_requirement_id": "req-1",
-      "selection_source": "fresh_fetch"
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
     }
-  ],
-  "quick_skim": []
+  ]
 }

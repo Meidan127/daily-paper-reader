@@ -1,10 +1,42 @@
 {
   "date": "20261114",
   "date_label": "",
-  "generated_at": "2026-11-14 07:07:11 UTC",
+  "generated_at": "2026-11-14 14:14:00 UTC",
   "recommend_exists": true,
-  "run_count": 1,
+  "run_count": 2,
   "papers": [
+    {
+      "paper_id": "journal-w7225307012",
+      "route": "202611/14/journal-w7225307012-machine-learning-based-diagnostic-decision-support-for-suspected-anterior-cruciate-ligament-tears-in-clinically-evaluated-athletes",
+      "title": "Machine learning-based diagnostic decision support for suspected anterior cruciate ligament tears in clinically evaluated athletes",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sports-ai"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "监督机器学习分类器辅助运动员前交叉韧带撕裂诊断",
+      "first_seen_at": "2026-11-14 14:14:00 UTC",
+      "updated_at": "2026-11-14 14:14:00 UTC"
+    },
+    {
+      "paper_id": "journal-w7225449358",
+      "route": "202611/14/journal-w7225449358-sex-equitable-machine-learning-prediction-of-ankle-reinjury-in-individuals-with-chronic-ankle-instability-a-2-year-prospective-cohort-study-with-fairness-audit",
+      "title": "Sex-Equitable Machine Learning Prediction of Ankle Reinjury in Individuals with Chronic Ankle Instability: A 2-Year Prospective Cohort Study with Fairness Audit",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sports-ai"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "机器学习模型预测两年踝关节再损伤并进行公平性审计",
+      "first_seen_at": "2026-11-14 14:14:00 UTC",
+      "updated_at": "2026-11-14 14:14:00 UTC"
+    },
     {
       "paper_id": "2611.17024v1",
       "route": "202611/14/2611.17024v1-clustering-professional-football-players-using-gaussian-mixture-models-a-case-study-of-the-english-premier-league-202425",
@@ -20,6 +52,38 @@
       "evidence": "用高斯混合模型对足球表现数据聚类以识别球员类型",
       "first_seen_at": "2026-11-14 07:07:11 UTC",
       "updated_at": "2026-11-14 07:07:11 UTC"
+    },
+    {
+      "paper_id": "journal-w7224906290",
+      "route": "202611/14/journal-w7224906290-wearable-sensorbased-prediction-of-knee-joint-moments-in-competitive-rugby-players-during-multidirectional-movements",
+      "title": "Wearable Sensor‐Based Prediction of Knee Joint Moments in Competitive Rugby Players During Multidirectional Movements",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sports-ai"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "可穿戴足底压力传感器结合可解释机器学习预测膝关节力矩",
+      "first_seen_at": "2026-11-14 14:14:00 UTC",
+      "updated_at": "2026-11-14 14:14:00 UTC"
+    },
+    {
+      "paper_id": "journal-w7221832279",
+      "route": "202611/14/journal-w7221832279-throwing4-phase-aware-pose-modeling-for-throw-distance-prediction-in-elite-athletics",
+      "title": "Throwing4: phase-aware pose modeling for throw-distance prediction in elite athletics",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sports-ai"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "阶段感知姿态建模预测投掷距离，属运动表现评估的人工智能方法",
+      "first_seen_at": "2026-11-14 14:14:00 UTC",
+      "updated_at": "2026-11-14 14:14:00 UTC"
     }
   ]
 }

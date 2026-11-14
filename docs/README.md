@@ -51,14 +51,14 @@
       <span class="dpr-home-dashboard-kicker">2026-11-14</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 1 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 5 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>4</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>1</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-11-14 07:07:11 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-11-14 14:14:00 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天精读 1 篇 9.0 分论文，聚焦用高斯混合模型对英超 2024/25 赛季职业球员进行聚类分析。</p>
-<p>最值得看的是球员分群建模思路，以及如何把聚类结果解释为可理解的位置或类型画像。</p>
-<p>普通读者可先看分群依据和解释边界，避免把聚类标签直接当成球员能力定论。</p>
+<p>今天筛选5篇运动损伤与运动表现文献，精读4篇，重点锁定前交叉韧带与慢性踝关节不稳的机器学习辅助诊疗。</p>
+<p>最值得看的是两项9.0分研究：用机器学习为临床评估过的运动员辅助诊断疑似前交叉韧带撕裂，以及在慢性踝关节不稳人群中做兼顾性别公平的踝关节再伤预测与公平性审计。</p>
+<p>普通读者可先关注这两篇的预测变量与公平性评估思路，再对照自身或队伍的数据条件，判断哪些指标值得日常记录。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Clustering professional football players using Gaussian mixture models: A case study of the English Premier League 2024/25">Clustering professional football players using Gaussian mixture models: A case study of the English Premier League 2024/25</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Machine learning-based diagnostic decision support for suspected anterior cruciate ligament tears in clinically evaluated athletes">Machine learning-based diagnostic decision support for suspected anterior cruciate ligament tears in clinically evaluated athletes</span></li><li><span class="dpr-home-dashboard-paper-title" title="Sex-Equitable Machine Learning Prediction of Ankle Reinjury in Individuals with Chronic Ankle Instability: A 2-Year Prospective Cohort Study with Fairness Audit">Sex-Equitable Machine Learning Prediction of Ankle Reinjury in Individuals with Chronic Ankle Instability: A 2-Year Prospective Cohort Study with Fairness Audit</span></li><li><span class="dpr-home-dashboard-paper-title" title="Clustering professional football players using Gaussian mixture models: A case study of the English Premier League 2024/25">Clustering professional football players using Gaussian mixture models: A case study of the English Premier League 2024/25</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">sports-ai <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">sports-ai <strong>4</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +93,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Throwing4: phase-aware pose modeling for throw-distance prediction in elite athletics">Throwing4: phase-aware pose modeling for throw-distance prediction in elite athletics</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">sports-ai <strong>1</strong></span></div>
 </section>
 </div>
 

@@ -1,0 +1,244 @@
+Title: Throwing4: Phase-Aware Pose Modeling for Throw-Distance Prediction in Elite Athletics
+
+URL Source: https://arxiv.org/pdf/2610.16383
+
+Published Time: Wed, 14 Oct 2026 03:22:58 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# Throwing4: Phase-Aware Pose Modeling for Throw-Distance Prediction in Elite Athletics 
+
+Bikash Kumar Badatya 1, Kartike Tiwari 2, Jyotirmoy Amin 3,Ravi Hegde 1* 
+
+> 1*
+
+Department of Electrical Engineering, Indian Institute of Technology Gandhinagar, Gandhinagar, India. 
+
+> 2
+
+Department of Electronics and Communication Engineering, Madan Mohan Malaviya University of Technology, Gorakhpur, India. 
+
+> 3
+
+Department of Mathematical Sciences, IISER Berhampur, Berhampur, India. *Corresponding author(s). E-mail(s): hegder@iitgn.ac.in; Contributing authors: bikash.badatya@iitgn.ac.in; 2023041041@mmmut.ac.in; jyotirmoy22@iiserbpr.ac.in; 
+
+Abstract 
+
+Elite athletics throwing provides a structured biomechanical action sequence together with an objective continuous outcome, namely throw distance, making it a suitable setting for performance-oriented sports analytics. In this work, we investigate whether explicit phase alignment of pose dynamics improves throw-distance prediction under realistic broadcast conditions. To support this study, we curate Throwing4, a dataset of 500 elite throwing clips spanning javelin, dis-cus, hammer, and shot put, with corresponding two-dimensional pose sequences, frame-level phase annotations, and official distance labels. We formulate throw-distance prediction from broadcast-derived pose as a regression problem and compare full-sequence modeling against a phase-conditioned approach that par-titions each attempt into four technique stages and fuses phase-specific motion representations. Experiments across multiple graph-based pose encoders show a consistent reduction in prediction error when phase structure is incorporated, indicating that phase-aligned modeling provides a more stable representation than treating the entire motion as an unstructured sequence. These findings sug-gest that explicit biomechanical phase information is a useful inductive prior for pose-based performance modeling in elite athletics throwing. Beyond score 
+
+1arXiv:2610.16383v1 [cs.CV] 12 Oct 2026 prediction, the dataset and protocol provide a basis for future work on fine-grained technique analysis, interpretable sports analytics, and robust modeling from broadcast video.  
+
+> Keywords: sports analytics, athletics throwing, skeleton-based modeling, performance prediction, throw-distance regression, phase-aware modeling
+
+# 1 Introduction 
+
+Computer vision and artificial intelligence (AI) are increasingly used in sports anal-ysis to convert raw video into measurable information about technique, timing, and performance. Modern pipelines can track athletes, estimate body keypoints, detect critical events, localize actions in time, and summarize movement patterns from realis-tic broadcast footage [1, 2]. This capability is important in sport because practitioners rarely need only a coarse action label; they also need to know when decisive moments occur and how the body moves through those moments. Large-scale datasets have been central to this progress. General-purpose video datasets such as UCF101 and Kinetics support broad representation learning [3, 4], while sports-oriented resources increasingly emphasize fine temporal structure, hierarchical action organization, and performance-sensitive supervision [5–7]. At the same time, sports video remains challenging because realistic broadcasts contain camera motion, zoom, changing view-points, motion blur, occlusion, clutter, and editing artifacts, all of which complicate temporally precise reasoning [1, 2]. This creates a persistent gap between the struc-tured movement descriptions that coaches and analysts care about and the supervision many existing datasets or models directly provide. A second challenge concerns how movement is measured. High-fidelity biome-chanics often relies on specialized instrumentation such as motion-capture systems, markers, force plates, or wearable sensors, which can provide accurate signals but are difficult to deploy at scale in real competitions. Markerless pose estimation from ordi-nary red–green–blue (RGB) video offers a practical alternative because it produces compact and interpretable joint trajectories without requiring controlled laboratory setups or athlete instrumentation [8, 9]. Once represented as skeletons, movement naturally forms a spatio-temporal graph in which body joints evolve over time, mak-ing graph-based models a natural choice for analysis [10–13]. This representation is well suited to sports in which technique is understood as an ordered sequence of phases rather than as a single indivisible motion. In such cases, explicitly incorpo-rating phase structure may improve interpretability and may reduce the influence of variable-duration content that is less informative for the final outcome [14, 15]. These issues are evident in athletic throwing. Throwing actions follow an ordered biomechanical progression, while performance is summarized by an objective con-tinuous outcome: the final throw distance. Elite competitions are a suitable setting for research because technique is more standardized, attempts are governed by clear rules, and outcome labels are officially recorded. However, despite recent progress in sports datasets and pose-based modeling, there is still no widely adopted resource 2that jointly aligns elite throwing broadcasts with identity-consistent pose tracks, frame-level phase boundaries, and official distance outcomes across multiple throwing disciplines. This motivates the present study. We formulate elite throwing score pre-diction from broadcast-derived pose as a phase-aware performance modeling problem, curate a multi-discipline dataset to support this study, and investigate whether phase-conditioned modeling provides a measurable advantage over full-sequence regression under realistic broadcast conditions. The main contributions of this work are as follows: 
+
+• We formulate elite throwing score prediction from broadcast-derived pose as a phase-aware performance modeling problem and curate Throwing4 to support evaluation across four athletics disciplines. 
+
+• We introduce a reproducible pose-based prediction protocol using identity-consistent two-dimensional (2D) pose trajectories in the 16-joint Max Planck Institute for Informatics layout (MPII-16), lightweight pose normalization, and evaluation in both normalized units and metres. 
+
+• We study a phase-conditioned regression formulation that encodes each technique stage separately before fusion and compare it against full-sequence modeling across multiple graph-based pose encoders. 
+
+• We show that phase-conditioned modeling consistently reduces prediction error under the present experimental protocol, suggesting that biomechanical phase struc-ture is a useful inductive prior for pose-based performance modeling in elite athletics throwing. 
+
+# 2 Related Work 
+
+2.1 Sports video datasets and benchmarks 
+
+Progress in sports vision has been strongly shaped by datasets that combine real-istic viewing conditions with structured supervision. Generic action datasets such as UCF101 and Kinetics established strong foundations for video representation learning [3, 4], while sports-specific resources pushed the field toward domain-aware temporal reasoning. FineGym emphasizes hierarchical temporal structure [5], Soccer-Net supports large-scale event spotting in broadcast soccer [16, 17], and MultiSports addresses multi-person spatio-temporal action localization [18]. More recent action-quality datasets, such as FineDiving and LOGO, connect video understanding with procedure-aware or score-related assessment [6, 7]. These resources show a shift from coarse action classification toward temporally structured and performance-sensitive analysis. However, relatively few datasets jointly provide elite athletics throwing videos, pose trajectories, phase boundaries, and official continuous distance labels. 
+
+2.2 Fine-grained temporal structure and phase supervision 
+
+Many sports actions are better understood as ordered technique stages than as single holistic actions. The decomposable-motion perspective [14, 15] aligns with coaching practice, where diagnostically important cues occur in specific temporal segments. In athletics throwing, this staged structure is explicit: preparation, force generation, 3release, and recovery are not interchangeable parts of the motion. Prior work on javelin phase segmentation has shown that biomechanical phase boundaries can be detected from motion dynamics and can support temporally localized analysis [19]. Related unsupervised and weakly supervised segmentation methods also indicate that temporal embeddings, clustering, and transport-based alignment can recover structured action progression without dense labels [20–22]. These studies motivate the use of phase structure as both an interpretability mechanism and an inductive bias for performance modeling. 
+
+2.3 Pose-based temporal modeling and biomechanical performance prediction 
+
+Markerless pose provides a compact and interpretable representation for sports move-ment because it captures joint trajectories from ordinary video without requiring laboratory instrumentation. Pose-estimation toolkits such as MMPose make large-scale extraction feasible [9], and graph-based skeleton models naturally represent the body as a spatio-temporal joint graph [10–13]. For throwing, this representation is also biomechanically meaningful. Track-and-field throwing performance is known to depend on coordinated segmental motion, release velocity, release angle, release height, and technique consistency [23]. In javelin, recent kinematic studies relate release veloc-ity to run-up and body-segment contributions [24, 25]. In discus, release parameters are athlete-specific and strongly coupled to performance [26]. Hammer-throw studies emphasize the role of release velocity and rotational dynamics [27], while shot-put studies show that kinematic repeatability and technique-dependent variables influ-ence throwing distance [28]. These biomechanical findings support the central premise of this work: phase-aligned pose dynamics may provide a useful representation for predicting continuous throwing performance from broadcast-derived skeletons. 
+
+# 3 Methods 
+
+3.1 Dataset curation and annotation 
+
+Throwing4 is designed as a resource for phase-aware performance modeling in elite athletics throwing under realistic broadcast conditions. It contains curated RGB clips of complete competition attempts, identity-consistent MPII-16 2D pose sequences extracted from each clip, frame-level phase boundaries, and the official throw distance associated with each attempt. The dataset spans four throwing disciplines—javelin, discus, hammer, and shot put—and is compiled from major international events, including the Tokyo 2020 and Paris 2024 Olympic Games, the World Athletics Cham-pionships (WAC) in Beijing 2015 and Oregon 2022, and the European Athletics Championships (EAC) 2024. We identify candidate attempts by scanning long-form broadcasts and then manu-ally review each candidate to ensure that it corresponds to a complete, valid, non-foul throw with sufficient visual observability for pose extraction and temporal annotation. We exclude foul attempts, replay-only segments, incomplete attempts, hard scene cuts 4Table 1 Throwing4 overview: number of clips per sport with male/female split (Videos (M/F)), source broadcast events, and the canonical four-phase taxonomy used for temporal annotation.                                                              
+
+> Sport Videos (M/F) Tokyo Paris WAC EAC Phase 2020 2024 Beijing 2015 Oregon 2022 2024 1234
+> Javelin Throw 211 (111/100) 45 82 27 16 41 step drive throw recovery Discus Throw 112 (69/43) 60 52 –––swing turn throw recovery Hammer Throw 90 (30/60) 26 64 –––swing turn throw recovery Shot Put 87 (55/32) 32 43 ––12 stance glide throw recovery STEP DRIVE THROW RECOVERY JAVELIN THROW SWING TURN THROW RECOVERY DISCUS THROW RECOVERY THROW TURN SWING HAMMER THROW RECOVERY THROW STANCE GLIDE SHOT PUT
+
+Fig. 1 Qualitative illustration of the four-phase technique progression for representative clips from javelin, discus, hammer, and shot put. 
+
+around decisive motion segments, and clips with prolonged occlusion or incomplete athlete visibility during key moments. For each accepted attempt, the clip is trimmed so that it begins with the earliest preparatory movement initiating the attempt and ends after release and immediate stabilization or recovery, thereby reducing label noise and ensuring that the recorded official distance corresponds to a visually observable full attempt. The curated clips have a mean duration of 5.8 s (range 1.8–11.8 s), with per-discipline means of 5.9 s for javelin, 5.9 s for discus, 7.0 s for hammer, and 4.3 s for shot put. Table 1 summarizes the number of curated clips per sport, the male/female split, and the source events contributing to each discipline, while Fig. 1 illustrates the four-phase technique progression used for temporal annotation. The resulting dataset contains 500 elite throwing clips in total and is intentionally focused on valid com-petition attempts with reliable outcome labels rather than exhaustive coverage of all available footage. For every retained clip in the dataset, we manually annotate the complete video at frame resolution to obtain phase boundaries according to a compact four-phase decomposition that reflects the canonical technique progression within each discipline. Thus, all 500 retained videos are accompanied by frame-level phase annotations, official 5distance labels, and corresponding identity-consistent 2D pose sequences. These sport-specific phase names are listed in the last columns of Table 1 and visualized in Fig. 1. The transition frames are marked by manual review at frame resolution. These annotations serve two complementary purposes in the present study: they enable explicit phase-conditioned feature formation for regression, and they sup-port diagnostic analysis of where performance-relevant signal appears to concentrate within an attempt. In addition to phase boundaries, we record the official throw distance in meters for each clip as the performance label, obtained from broad-cast overlays or result panels when available. Together, the synchronized RGB clips, phase annotations, and official outcome labels provide a structured basis for studying performance-oriented modeling in elite throwing. Additional dataset documentation, including the folder structure, JavaScript Object Notation (JSON) annotation format, skeleton-data format, annotation proce-dure, athlete identifiers, attempt numbering, unique-player counts, and split-related limitations, is provided in Online Resource 1. 
+
+3.2 Pose extraction and identity-consistent thrower tracking 
+
+To obtain scalable motion measurements from broadcast RGB, we extract a single identity-consistent skeleton sequence for the primary throwing athlete in each clip using a top-down pose estimation and tracking pipeline, illustrated in Fig. 2. Videos from all four disciplines are first processed with MMPose [9] for multi-person detec-tion and 2D keypoint estimation. For each frame It, the detector produces a set of candidate person bounding boxes Bt after confidence thresholding and non-maximum suppression. In realistic broadcast scenes, however, the frame often contains multiple people such as officials, camera operators, and nearby athletes, so naive frame-wise estimation over all detections can introduce identity switches and temporally inconsistent pose trajectories. To address this, we construct a single tracked bounding-box sequence bBt
+
+for the thrower of interest using deterministic detection association. The track is initialized from the dominant athlete box, and subsequent detections are selected by maximizing spatial overlap with the previous target subject to a gating threshold that reduces drift under crowding, scale variation, and brief occlusion. Con-ditioned on bBt, MMPose produces MPII-format 2D skeletons with J = 16 joints per frame, yielding one temporally consistent MPII-16 pose sequence for each clip. This step converts a variable and cluttered multi-person broadcast scene into a compact athlete-centered motion representation suitable for temporal modeling and subsequent phase-aware regression. 
+
+3.3 Phase-aware pose modeling for throw-distance prediction 
+
+Each attempt is represented as an MPII-16 2D pose sequence P = {pt,j }t=1 ..T, j =1 ..J 
+
+with J = 16 joints and pt,j ∈ R2. To reduce nuisance variation caused by broadcast capture, including zoom, scale change, and athlete-to-camera distance, we apply a lightweight normalization of translation and scale before prediction. Let jp denote the pelvis joint index and let t0 denote the first valid frame. We first remove global 6Fig. 2 Pose extraction pipeline in Throwing4. Broadcast RGB clips are processed with MMPose for multi-person detection, followed by identity-consistent thrower tracking to obtain an MPII-16 2D pose sequence for each clip. 
+
+translation by anchoring the sequence to the pelvis at t0:˜pt,j = pt,j − pt0,j p . (1) For each frame, define the pelvis center ct = ˜ pt,j p and the joint offsets dt,j = ˜ pt,j − ct.The per-frame scale is then given by 
+
+rt = max  
+
+> j
+
+∥dt,j ∥2, (2) and the normalized pose is obtained by rescaling these offsets to unit radius: ¯pt,j = ct + dt,j 
+
+rt + ε , ε > 0. (3) For regression stability across disciplines with different distance ranges, the official throw distance s is normalized by min–max scaling within each discipline: 
+
+y = s − smin 
+
+smax − smin 
+
+, y ∈ [0 , 1] . (4) We compare two regression formulations under a common protocol. In the first, the complete normalized pose sequence ¯P ∈ RT ×J×2 is used directly for full-sequence modeling. Because clips have variable duration, sequences are padded to a dataset maximum length Tmax together with a binary temporal mask m ∈ { 0, 1}Tmax . A spatio-temporal pose-graph encoder fθ (·) maps the padded sequence to frame-wise 7embeddings et ∈ RD, which are aggregated by masked temporal mean pooling, 
+
+hfull =
+
+PTmax  
+
+> t=1
+
+mt et
+
+PTmax  
+
+> t=1
+
+mt
+
+, (5) and a lightweight multilayer perceptron (MLP) regressor gϕ(·) predicts the normalized score as ˆy = σ gϕ(hfull ) ∈ [0 , 1] , (6) where σ(·) denotes a sigmoid nonlinearity. In the second formulation, we incorpo-rate explicit phase structure by partitioning each clip into four phase subsequences 
+
+{ ¯Pk}4 
+
+> k=1
+
+using the manually annotated ground-truth phase boundaries. Thus, the phase-conditioned results correspond to an oracle-boundary setting in which phase boundaries are available during both training and testing. Each phase is padded to a phase-specific maximum length Lk and assigned a corresponding binary mask 
+
+mk ∈ { 0, 1}Lk . The same encoder is applied independently to each phase to produce embeddings ek,t ∈ RD, which are summarized by 
+
+hk =
+
+PLk 
+
+> t=1
+
+mk,t ek,t 
+
+PLk 
+
+> t=1
+
+mk,t 
+
+, k ∈ { 1, 2, 3, 4}. (7) The phase descriptors are concatenated as hphase = [ h1; h2; h3; h4] ∈ R4D and used to predict the score through ˆy = σ gϕ(hphase ) ∈ [0 , 1] . (8) This phase-conditioned formulation encourages the model to summarize technique-aligned motion separately before fusion rather than implicitly averaging over variable-duration content across the entire clip. The architecture is illustrated in Fig. 3. For backbone attribution, Spatio-Temporal Graph Convolutional Network (STGCN) and Adaptive Graph Convolutional Network (AGCN) follow canonical skeleton-action for-mulations [10, 11], Attention-based Spatio-Temporal Graph Convolutional Network (ASTGCN) is adapted from the attention-based spatial-temporal graph convolutional network of Guo et al. [29], Graph Convolutional Network (GCN) follows the graph-convolution baseline of Kipf and Welling [30], and Temporal-Spatial Attention Graph Convolutional Network (TSAGCN) follows the weakly supervised generative attention model of Shi et al. [31]. 
+
+3.4 Evaluation protocol 
+
+Let si ∈ R denote the ground-truth throw distance for sample i and let ˆ yi denote the corresponding model prediction in normalized space for i = 1 , . . . , N . Using the normalization in Eq. (4), we define 
+
+yi = si − smin 
+
+smax − smin 
+
+, (9) 8…. 
+
+…. 
+
+…. 
+
+….  
+
+> PHASE -1 PHASE -2 PHASE -3 PHASE -4 (𝐓 × 𝐉 × 𝟐 )
+
+…….. TTemporal Convolution (TC)       
+
+> Spatial Graph Convolution (SGC)
+> Temporal Convolution (TC)
+> Spatial Graph Convolution (SGC)
+> Temporal Convolution (TC)
+> Spatial Graph Convolution (SGC)
+> Temporal Convolution (TC)
+> Spatial Graph Convolution (SGC)
+> EMBEDDING TENSOR EMBEDDING TENSOR EMBEDDING TENSOR EMBEDDING TENSOR (𝐓 × 𝐉 × 𝐃)
+> (𝐓 × 𝐉 × 𝐃)
+> (𝐓 × 𝐉 × 𝐃)
+> (𝐓 × 𝐉 × 𝐃)
+> MASKED POOLING
+> …
+> POOLED VECTOR (D)
+> …
+> POOLED VECTOR (D)
+> …
+> POOLED VECTOR (D)
+> …
+> POOLED VECTOR (D) MASKED POOLING MASKED POOLING MASKED POOLING
+> 𝐳 𝐏𝐇𝐀𝐒𝐄𝟏
+> 𝐳 𝐏𝐇𝐀𝐒𝐄𝟐 ;
+> 𝐳 𝐏𝐇𝐀𝐒𝐄𝟑 ;
+> 𝐳 𝐏𝐇𝐀𝐒𝐄𝟒
+> Z= FUSION
+> 𝐙 ∈ 𝐑 𝟒𝐃
+> ENCODER ENCODER ENCODER ENCODER DECODER: MLP REGRESSION HEAD
+> OPTIMIZER LOSS GT - SCORE
+> TRAINING SECTION
+> 𝐘 = [0.0 – 1.0] BACKPROPAGATION INFERENCE SECTION: PREDICTED SCORE ( 𝐘 )
+
+Fig. 3 Phase-conditioned throw-distance prediction pipeline. The pose sequence is divided into four phases, each phase is encoded by a spatio-temporal graph network, pooled with masking, and fused for regression of the normalized throw distance. 
+
+and report the mean absolute error (MAE) in normalized space: MAE = 1
+
+N
+
+NX
+
+i=1 
+
+|yi − ˆyi| . (10) For interpretability in meters, we de-normalize the MAE by the score range: MAE m = ( smax − smin ) MAE . (11) The clips in each discipline are partitioned at the clip level into 80% for train-ing and the remaining 20% for held-out testing. This partition is an attempt-level within-dataset split and does not enforce athlete-independent, competition-held-out, or event-held-out separation; repeated attempts from the same athlete may therefore appear in both partitions. The regressor receives only normalized two-dimensional skeleton sequences and does not use athlete names, RGB appearance, venue back-ground, broadcast graphics, or performance history. All throw-distance prediction experiments follow this normalization, partitioning, and evaluation protocol. All models were implemented in PyTorch and trained for 100 epochs with a batch size of 32. The normalized throw-distance regression objective was optimized using mean-squared error loss and the AdamW optimizer with learning rate 1 × 10 −4 and weight decay 1 ×10 −4. No learning-rate scheduler was used. For each random split, the held-out test set was used only for final reporting and was not used during training. Gradients were clipped to a maximum norm of 5.0. The pose-graph encoder produces a D = 64-dimensional embedding per time step, which is pooled either across the full sequence or within each phase before regression. Experiments were run on a worksta-tion with an Intel Core i9-7920X CPU, 125 GB RAM, and NVIDIA GPUs including a GeForce GTX 1080 Ti with 11 GB memory and two GeForce RTX 3050 GPUs with 8 GB memory. The aim of the empirical study is not to identify a universally best graph archi-tecture for all throwing events, but to evaluate whether explicit phase structure 9Table 2 MAE in normalized space for full-sequence and phase-conditioned inputs across four throwing disciplines. Lower is better.                                                    
+
+> Model Javelin Discus Hammer Shot put full phase full phase full phase full phase
+> GCN [30] 0.2863 0.2604 0.1278 0.1160 0.2334 0.1680 0.3076 0.2055
+> STGCN [10] 0.2583 0.1902 0.1494 0.1317 0.1609 0.1432 0.3651 0.3196 ASTGCN [29] 0.2023 0.1070 0.1352 0.1249 0.2645 0.1364 0.3976 0.2972 AGCN [11] 0.0682 0.0662 0.1631 0.1467 0.1686 0.1504 0.3779 0.2191 TSAGCN [31] 0.1203 0.1034 0.1461 0.1324 0.1559 0.1461 0.4112 0.2213
+
+consistently improves prediction under a common protocol across multiple model fami-lies. A separate repeated-seed AGCN analysis over five random seeds for each discipline is provided in Online Resource 1 to assess robustness beyond the primary benchmark. 
+
+# 4 Results 
+
+Table 2 reports the normalized mean absolute error (MAE) for full-sequence and phase-conditioned inputs across the four throwing disciplines, while Fig. 4 presents the corresponding errors after conversion to metres using Eq. (11). Across all evaluated graph-based models and all four disciplines, the phase-conditioned setting produces lower prediction error than the corresponding full-sequence setting. For example, in javelin, the ASTGCN MAE decreases from 0 .2023 to 0 .1070, while in hammer it decreases from 0 .2645 to 0 .1364. The same overall pattern is observed in the metre-scale results shown in Fig. 4. The lowest phase-conditioned MAE differs across disciplines. AGCN obtains the lowest error for javelin (0 .0662), GCN for discus (0 .1160), ASTGCN for ham-mer (0 .1364), and GCN for shot put (0 .2055). Despite these differences in the best-performing backbone, the phase-conditioned input yields lower error than the cor-responding full-sequence input for every graph-based model evaluated in Table 2. Addi-tional repeated-seed and phase-boundary analyses are reported in Online Resource 1. The phase-boundary ablation compares the annotated four-phase partition (Manual-4) with four equal temporal windows (Uniform-4) under the same AGCN backbone and five random seeds. Manual-4 gives the lower mean MAE for javelin (∆ = 0 .019 normalized, 0 .783 m) and is effectively tied with Uniform-4 for hammer (∆ = 0 .001 normalized, 0 .014 m), while Uniform-4 gives the lower mean MAE for discus (∆ = 
+
+−0.008) and shot put (∆ = −0.054). 
+
+# 5 Discussion 
+
+Phase-conditioned modeling lowered throw-distance error in every discipline and under every pose-graph backbone tested. The consistency matters more than the margin, because it indicates that the gain comes from the representation rather than from a 10 Fig. 4 MAE in meters for full-sequence and phase-conditioned score prediction across four throwing disciplines. Errors in meters are obtained by de-normalizing the normalized MAE using Eq. (11). 
+
+particular architecture. A throw is a short sequence of functionally distinct actions, and a model that pools an entire clip must average across them. Decomposing the sequence first lets each segment contribute its own summary, so that information from the delivery is not diluted by a long and variable approach. The metre-scale reduction is largest for javelin, which fits this account, since the javelin run-up varies most across athletes and clips in duration, rhythm, and scene composition [24, 25]. The phase-boundary ablation separates two things that the main result combines: segmenting the sequence at all, and segmenting it at biomechanically aligned points. Both formulations use four pooled descriptors, so any difference between them is attributable to boundary placement alone. Little difference appears. For javelin, dis-cus, and hammer the gap between annotated and uniform boundaries falls within the across-seed variation, and the one event where the gap exceeds seed variability, shot put, favours the uniform windows. The reasonable conclusion is that temporal decom-position is the active ingredient and that boundary placement is second-order at this sequence length and label volume. For the rotational events this is expected, since dis-cus and hammer turns blend into one another and leave less for a boundary to align to [26, 27]. This has a practical reading for sports engineering. Competition broadcast footage is easier to obtain than laboratory motion capture and closer to the conditions under 11 which elite sport is actually observed [1, 2], and it carries enough information for performance-oriented modeling once the representation is structured. The phase anno-tations in Throwing4 earn their cost not by improving this particular regression but by making a class of questions askable at all: which phase carries the performance sig-nal, whether boundaries can be recovered automatically, and how staged movement relates to outcome across disciplines. Each of those requires labelled phases to study. Four limitations bound these claims. The pose is two-dimensional and esti-mated from broadcast video, so joint torques, implement dynamics, and true three-dimensional kinematics remain out of reach. The data covers valid elite non-foul attempts, which sharpens the labels but leaves generalization to novice athletes and training footage untested. Phase boundaries are hand-annotated, so the phase-conditioned results are an oracle-boundary benchmark rather than a deployable system. And because the clip-level partition described in Section 3.4 is not athlete-independent, these numbers do not speak to athlete-independent generalization. The metre-scale error should accordingly be read as coarse estimation, informative for attempt-level comparison and technique analysis but not a substitute for official measurement. Each limitation names its own next step: automatic phase detection to remove the oracle boundaries, athlete-independent protocols to test transfer, phase-wise and joint-level attribution to locate the signal within a throw, and multimodal or three-dimensional input to recover the biomechanics that two-dimensional pose cannot. 
+
+# 6 Conclusion 
+
+This paper introduced Throwing4 as a resource for studying throw-distance predic-tion from elite athletics throwing under realistic broadcast conditions. The dataset combines curated RGB clips, identity-consistent MPII-16 pose sequences, frame-level phase annotations, and official throw distances across javelin, discus, hammer, and shot put. Using this resource, we formulated throw-distance prediction from pose as a regression problem and compared full-sequence modeling with a phase-conditioned alternative that explicitly respects the staged structure of throwing technique. Across all evaluated disciplines and graph-based backbones, phase-conditioned modeling pro-duced lower prediction error than full-sequence regression under the present protocol. These results suggest that biomechanical phase structure is a useful inductive prior for pose-based performance modeling in elite athletics throwing and provide a basis for future work on phase-aware sports analytics from broadcast video. 
+
+# Acknowledgements 
+
+We acknowledge the Ministry of Youth Affairs and Sports, Department of Sports, Government of India, for providing financial support to our research in Sports Analytics. 12 Declarations 
+
+Conflict of Interest 
+
+The authors declare that they have no conflict of interest. 
+
+Compliance with Ethical Standards 
+
+This study did not involve the recruitment of human participants, nor any intervention or direct experimentation. All video material was obtained from publicly broadcast elite athletics competitions, and the work is limited to secondary analysis of this exist-ing media. Formal ethics approval and informed consent were therefore not required for this study. 
+
+# Data Availability 
+
+The Throwing4 dataset and associated documentation are publicly available through the Throwing4 repository at https://github.com/Bikudebug/Throwing4-Dataset. The repository provides dataset documentation and access information for the RGB video clips, frame-level phase annotations, official throw-distance labels, and identity-consistent MPII-16 two-dimensional pose sequences used in this study. 
+
+# References 
+
+[1] Wu, F., Wang, Q., Bian, J., Ding, N., Lu, F., Cheng, J., Dou, D., Xiong, H.: A survey on video action recognition in sports: Datasets, methods and applications. IEEE Transactions on Multimedia 25 , 7943–7966 (2022) [2] Xu, H., Baniya, A.A., Well, S., Bouadjenek, M.R., Dazeley, R., Aryal, S.: Action spotting and precise event detection in sports: Datasets, methods, and challenges. arXiv preprint arXiv:2505.03991 (2025) [3] Soomro, K., Zamir, A.R., Shah, M.: Ucf101: A dataset of 101 human action classes from videos in the wild. arXiv preprint arXiv:1212.0402 (2012) [4] Kay, W., Carreira, J., Simonyan, K., Zhang, B., Hillier, C., Vijayanarasimhan, S., Viola, F., Green, T., Back, T., Natsev, P., Zisserman, A.: The kinetics human action video dataset. arXiv preprint arXiv:1705.06950 (2017) [5] Shao, D., Zhao, Y., Dai, B., Lin, D.: Finegym: A hierarchical video dataset for fine-grained action understanding. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 2616–2625 (2020) [6] Xu, J., Rao, Y., Yu, X., Chen, G., Zhou, J., Lu, J.: Finediving: A fine-grained dataset for procedure-aware action quality assessment. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 2949–2958 (2022) 13 [7] Zhang, S., Dai, W., Wang, S., Shen, X., Lu, J., Zhou, J., Tang, Y.: Logo: A long-form video dataset for group action quality assessment. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 2405–2414 (2023) [8] Cao, Z., Simon, T., Wei, S.-E., Sheikh, Y.: Realtime multi-person 2d pose esti-mation using part affinity fields. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) (2017) [9] MMPose Contributors: MMPose: OpenMMLab pose estimation toolbox and benchmark. https://github.com/open-mmlab/mmpose. arXiv:2011.00357 (2020) [10] Yan, S., Xiong, Y., Lin, D.: Spatial temporal graph convolutional networks for skeleton-based action recognition. In: Proceedings of the AAAI Conference on Artificial Intelligence (2018) [11] Shi, L., Zhang, Y., Cheng, J., Lu, H.: Two-stream adaptive graph convolutional networks for skeleton-based action recognition. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 12026– 12035 (2019) [12] Liu, Z., Zhang, H., Chen, Z., Wang, Z., Ouyang, W.: Disentangling and unifying graph convolutions for skeleton-based action recognition. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 143–152 (2020) [13] Chen, Y., Zhang, Z., Yuan, C., Li, B., Deng, Y., Hu, W.: Channel-wise topology refinement graph convolution for skeleton-based action recognition. In: Proceed-ings of the IEEE/CVF International Conference on Computer Vision (ICCV) (2021) [14] Niebles, J.C., Chen, C.-W., Fei-Fei, L.: Modeling temporal structure of decom-posable motion segments for activity classification. In: European Conference on Computer Vision (ECCV), pp. 392–405. Springer, Berlin, Heidelberg (2010) [15] Jhuang, H., Gall, J., Zuffi, S., Schmid, C., Black, M.J.: Towards understand-ing action recognition. In: Proceedings of the IEEE International Conference on Computer Vision (ICCV), pp. 3192–3199 (2013) [16] Giancola, S., Amine, M., Dghaily, T., Ghanem, B.: Soccernet: A scalable dataset for action spotting in soccer videos. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops, pp. 1711–1721 (2018) [17] Deli` ege, A., Cioppa, A., Giancola, S., Seikavandi, M.J., Dueholm, J.V., Nasrol-lahi, K., Ghanem, B., Moeslund, T.B., Van Droogenbroeck, M.: Soccernet-v2: A dataset and benchmarks for holistic understanding of broadcast soccer videos. 14 In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops (2021) [18] Li, Y., Chen, L., He, R., Wang, Z., Wu, G., Wang, L.: Multisports: A multi-person video dataset of spatio-temporally localized sports actions. In: Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), pp. 13536–13545 (2021) [19] Badatya, B.K., Baghel, V., Amin, J., Hegde, R.: Biomechanical-phase based tem-poral segmentation in sports videos: A demonstration on javelin-throw. In: 2025 IEEE International Workshop on Sport, Technology and Research (STAR), pp. 19–24 (2025) [20] Kukleva, A., Kuehne, H., Sener, F., Gall, J.: Unsupervised learning of action classes with continuous temporal embedding. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 12066– 12074 (2019) [21] Kumar, S., Haresh, S., Ahmed, A., Konin, A., Zia, M.Z., Tran, Q.-H.: Unsuper-vised action segmentation by joint representation learning and online clustering. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 20174–20185 (2022) [22] Xu, M., Gould, S.: Temporally consistent unbalanced optimal transport for unsu-pervised action segmentation. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 14618–14627 (2024) [23] Zaras, N., Stasinaki, A.-N., Methenitis, S., Krase, A., Karampatsos, G., Geor-giadis, G., Spengos, K., Terzis, G.: Biological determinants of track and field throwing performance. Journal of Functional Morphology and Kinesiology 6(2), 40 (2021) [24] Makino, M., Nakayama, K., Ando, Y., Tauchi, K.: Kinematic contribution to javelin velocity at different run-up velocities in male athletes. Journal of Human Kinetics 89 , 43–52 (2023) [25] Makino, M., Tauchi, K.: Kinematic factors related to forward and vertical release velocity in male javelin throwers. International Journal of Sport and Health Science 20 , 249–259 (2022) [26] Leigh, S., Liu, H., Hubbard, M., Yu, B.: Individualized optimal release angles in discus throwing. Journal of Biomechanics 43 (3), 540–545 (2010) [27] Castaldi, G.M., Borzuola, R., Giombini, A., Fischetti, F., Macaluso, A.: Biome-chanics of the hammer throw: Narrative review. Frontiers in Sports and Active Living 4, 853536 (2022) 15 [28] Mastalerz, A., Sadowski, J.: Variability of performance and kinematics of dif-ferent shot put techniques in elite and sub-elite athletes—a preliminary study. International Journal of Environmental Research and Public Health 19 (3), 1751 (2022) [29] Guo, S., Lin, Y., Feng, N., Song, C., Wan, H.: Attention based spatial-temporal graph convolutional networks for traffic flow forecasting. In: Proceedings of the AAAI Conference on Artificial Intelligence, vol. 33, pp. 922–929 (2019) [30] Kipf, T.N., Welling, M.: Semi-supervised classification with graph convolutional networks. arXiv preprint arXiv:1609.02907 (2016) [31] Shi, B., Dai, Q., Mu, Y., Wang, J.: Weakly-supervised action localization by generative attention modeling. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 1009–1019 (2020) 16
