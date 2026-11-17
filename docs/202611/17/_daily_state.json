@@ -1,0 +1,41 @@
+{
+  "date": "20261117",
+  "date_label": "",
+  "generated_at": "2026-11-17 02:30:09 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2611.18382v1",
+      "route": "202611/17/2611.18382v1-where-tree-ensembles-decide-structural-local-explanation-with-decision-predicate-graphs",
+      "title": "Where Tree Ensembles Decide: Structural Local Explanation with Decision Predicate Graphs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sports-ai"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "树集成预测的结构化局部解释方法",
+      "first_seen_at": "2026-11-17 02:30:09 UTC",
+      "updated_at": "2026-11-17 02:30:09 UTC"
+    },
+    {
+      "paper_id": "2611.19027v1",
+      "route": "202611/17/2611.19027v1-heterowear-sensor-aware-self-supervised-learning-for-heterogeneous-wearable-activity-recognition",
+      "title": "HeteroWear: Sensor-Aware Self-Supervised Learning for Heterogeneous Wearable Activity Recognition",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sports-ai"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向异构可穿戴惯性与生理信号的自监督学习",
+      "first_seen_at": "2026-11-17 02:30:09 UTC",
+      "updated_at": "2026-11-17 02:30:09 UTC"
+    }
+  ]
+}

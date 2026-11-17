@@ -1,0 +1,92 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-11-17T02:29:49.157712+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2611.18382v1",
+      "source": "arxiv",
+      "title": "Where Tree Ensembles Decide: Structural Local Explanation with Decision Predicate Graphs",
+      "abstract": "Tree ensembles are among the most accurate models for tabular data, yet the computation behind a single prediction is spread over hundreds of decision rules. Feature attributions and counterfactuals explain such predictions through the influence of features or a change of the input, leaving open which of the thresholds applied by the trees a prediction responds to, while structural explanations compress these rules and lose the trees behind them. To address this gap, we propose a local Decision Predicate Graph (local DPG), which gathers the rules executed for a sample into a verifiable record of the computation, with a class support that reproduces every explained prediction. From these rules we select the critical predicate, the executed predicate whose crossing is estimated to move the model most strongly toward a chosen class, which offers the user a concrete threshold and the trees that share it, without an external explainer. Across 16 datasets and four ensemble families, it separates differently predicted neighbours better than random and nearest-threshold predicates. A single crossing recovers the true class in 46-69% of wrong predictions, against 29-50% when the same rule is applied to the feature ranked first by TreeSHAP, a measure close to the selection criterion, and on planted faults it finds the faulty threshold in 46-71% of the resulting errors, against 6-21% at random. Although training-free edits of these predicates did not reduce the error on unseen data, the critical predicate complements attributions and counterfactuals by naming where a prediction can be changed.",
+      "authors": [
+        "Sylvio Barbon Junior",
+        "Luca Longo"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-11-13 16:24:42+00:00",
+      "link": "https://arxiv.org/pdf/2611.18382v1",
+      "tags": [
+        "keyword:sports-ai",
+        "query:sports-ai"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "structural local explanation of tree ensemble predictions",
+      "llm_evidence_cn": "树集成预测的结构化局部解释方法",
+      "llm_evidence": "树集成预测的结构化局部解释方法",
+      "canonical_evidence": "树集成预测的结构化局部解释方法",
+      "llm_tldr_en": "Local Decision Predicate Graphs turn the rules executed for a single tree-ensemble prediction into a verifiable structural explanation, offering a transparent XAI technique transferable to analytics settings.",
+      "llm_tldr_cn": "树集成模型精度高但单次预测的计算分散在数百条决策规则中，现有特征归因与反事实解释难以说明模型究竟响应了哪些阈值。作者提出局部决策谓词图（local DPG），将样本实际执行的规则汇总为可验证的记录，并从中提取关键谓词。实验表明该方法能忠实复现被解释的预测。该工作为可解释人工智能提供了可迁移的结构化解释工具。",
+      "llm_tldr": "树集成模型精度高但单次预测的计算分散在数百条决策规则中，现有特征归因与反事实解释难以说明模型究竟响应了哪些阈值。作者提出局部决策谓词图（local DPG），将样本实际执行的规则汇总为可验证的记录，并从中提取关键谓词。实验表明该方法能忠实复现被解释的预测。该工作为可解释人工智能提供了可迁移的结构化解释工具。",
+      "llm_tags": [
+        "query:sports-ai"
+      ],
+      "matched_query_tag": "query:sports-ai",
+      "matched_query_text": "explainable artificial intelligence methods for transparent sports analytics and coaching decisions",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2611.19027v1",
+      "source": "arxiv",
+      "title": "HeteroWear: Sensor-Aware Self-Supervised Learning for Heterogeneous Wearable Activity Recognition",
+      "abstract": "Self-supervised learning for wearable sensing is usually confined to a single dataset or device family, leaving open whether representations transfer across heterogeneous sensor configurations and whether gains come from pretraining rather than architecture or richer sensor input. We present HeteroWear, a sensor-aware self-supervised framework pretrained on an eight-dataset wearable corpus (173 subjects, 358,261 windows) spanning inertial and physiological signals across body locations, devices, and sampling rates. HeteroWear separates within-sensor temporal modeling from cross-sensor relational modeling using sensor-context embeddings, temporal and cross-sensor Transformers, and latent cross-attention fusion. Training combines structured sensor dropout, cross-configuration consistency, and per-axis masked sensor modeling; missing sensors are omitted rather than reconstructed. Under leave-one-dataset-out pretraining and subject-disjoint evaluation on PAMAP2, WISDM, HHAR, HARTH, and UCI-HAR, HeteroWear improves mean macro-F1 from 0.688 to 0.724 over the identical architecture trained from scratch, with the largest gain on HHAR (0.823 versus 0.741), and achieves the highest macro-F1 on four of five benchmarks relative to single-accelerometer supervised baselines. Held-out-device evaluation yields a mean +0.066 macro-F1 improvement. Under 50% test-time channel removal, HeteroWear retains 73.8% of full-channel performance versus 64.1% for the same architecture trained from scratch without sensor dropout. Ablations show that structured sensor dropout primarily drives robustness, while cross-configuration consistency and sensor-context encoding contribute to transfer.",
+      "authors": [
+        "Yasaman Mohammadpour",
+        "Pouya Shaeri"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "eess.SP",
+        "stat.ML"
+      ],
+      "published": "2026-11-13 23:58:49+00:00",
+      "link": "https://arxiv.org/pdf/2611.19027v1",
+      "tags": [
+        "keyword:sports-ai",
+        "query:sports-ai"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "self-supervised learning on heterogeneous wearable inertial and physiological signals",
+      "llm_evidence_cn": "面向异构可穿戴惯性与生理信号的自监督学习",
+      "llm_evidence": "面向异构可穿戴惯性与生理信号的自监督学习",
+      "canonical_evidence": "面向异构可穿戴惯性与生理信号的自监督学习",
+      "llm_tldr_en": "HeteroWear pretrains a sensor-aware self-supervised model across eight wearable datasets, separating within-sensor temporal and cross-sensor relational modeling to improve activity recognition transfer.",
+      "llm_tldr_cn": "现有可穿戴传感自监督学习多局限于单一数据集或设备，跨异构传感器配置的表征迁移能力不明。作者提出HeteroWear，在涵盖八个数据集、173名受试者的可穿戴语料上预训练，通过传感器上下文嵌入、时序与跨传感器Transformer及交叉注意力融合分别建模。结果表明该框架提升了跨设备的活动识别表现。其意义在于为可穿戴生理与惯性数据的表征学习提供了可迁移方案，可支撑运动员监测类应用。",
+      "llm_tldr": "现有可穿戴传感自监督学习多局限于单一数据集或设备，跨异构传感器配置的表征迁移能力不明。作者提出HeteroWear，在涵盖八个数据集、173名受试者的可穿戴语料上预训练，通过传感器上下文嵌入、时序与跨传感器Transformer及交叉注意力融合分别建模。结果表明该框架提升了跨设备的活动识别表现。其意义在于为可穿戴生理与惯性数据的表征学习提供了可迁移方案，可支撑运动员监测类应用。",
+      "llm_tags": [
+        "query:sports-ai"
+      ],
+      "matched_query_tag": "query:sports-ai",
+      "matched_query_text": "AI analysis of wearable sensor data for athlete monitoring and workload tracking",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

@@ -1,0 +1,404 @@
+Title: HeteroWear: Sensor-Aware Self-Supervised Learning for Heterogeneous Wearable Activity Recognition
+
+URL Source: https://arxiv.org/pdf/2611.19027v1
+
+Published Time: Tue, 17 Nov 2026 01:37:18 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# HeteroWear: Sensor-Aware Self-Supervised Learning for Heterogeneous Wearable Activity Recognition 
+
+Yasaman Mohammadpour, Pouya Shaeri 
+
+School of Computing and Augmented Intelligence Arizona State University Tempe, Arizona, USA ymoham15@asu.edu, pshaeri@asu.edu 
+
+Abstract —Self-supervised learning for wearable sensing is usually confined to a single dataset or device family, leav-ing open whether representations transfer across heterogeneous sensor configurations and whether gains arise from pretrain-ing rather than from architecture or richer sensor input. We present HeteroWear, a sensor-aware self-supervised framework pretrained on an eight-dataset wearable corpus (173 subjects, 358,261 windows) spanning accelerometer, gyroscope, magne-tometer, photoplethysmography, electrocardiography, electroder-mal activity, respiration, temperature, and heart-rate signals across multiple body locations, devices, and native sampling rates. HeteroWear separates within-sensor temporal modeling from cross-sensor relational modeling using modality-specific patch tokenization, sensor-context embeddings, temporal and cross-sensor Transformers, and latent cross-attention fusion. Training combines structured sensor dropout, cross-configuration consis-tency, and per-axis masked sensor modeling; missing sensors are omitted rather than reconstructed. Under leave-one-dataset-out pretraining and subject-disjoint evaluation on PAMAP2, WISDM, HHAR, HARTH, and UCI-HAR, HeteroWear improves mean macro-F1 from 0.688 to 0.724 over the identical full-channel architecture trained from scratch, with the largest controlled gain on heterogeneous-device HHAR (0.823 versus 0.741). Rela-tive to single-accelerometer supervised baselines, it achieves the highest macro-F1 on four of five benchmarks. Held-out-device evaluation yields a mean +0.066 macro-F1 improvement over the matched scratch model. Under 50% test-time channel removal, HeteroWear retains 73.8% of full-channel performance versus 64.1% for the same architecture trained from scratch without sensor dropout. Ablations show that structured sensor dropout primarily drives robustness, while cross-configuration consistency and sensor-context encoding contribute to transfer. These results indicate that heterogeneous sensor-aware pretraining improves both cross-device generalization and resilience to changing sensor availability. 
+
+Index Terms —self-supervised learning, wearable sensing, hu-man activity recognition, missing modality robustness, sensor heterogeneity, representation learning 
+
+Extended version of a paper accepted at the 2026 IEEE International Conference on Big Data (IEEE BigData 2026). © 2026 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses, in any current or future media, including reprinting/republishing this material for advertising or promotional purposes, creating new collective works, for resale or redistribution to servers or lists, or reuse of any copyrighted component of this work in other works. 
+
+I. I NTRODUCTION 
+
+Wearable sensing research has produced dozens of human activity recognition (HAR) datasets, each collected with a dif-ferent combination of sensor modalities, on-body placements, device hardware, and sampling protocols. A model trained on chest-and-wrist accelerometry at 100 Hz from a research-grade inertial unit does not, in general, transfer to a consumer smart-watch at 32 Hz on the wrist alone, and a model that assumes a fixed input channel set breaks the moment one channel is unavailable, whether from lost connectivity, a dead battery, or a device simply not worn that day. Cross-device heterogeneity and missing-modality robustness are usually treated as separate problems, addressed either by training a bespoke model per dataset or by imputing missing channels after the fact. We ask whether a single pretrained representation, trained explicitly to expect variation in which sensors are present, can serve both purposes. Both problems have concrete practical stakes beyond bench-mark accuracy. Continuous activity and physiological monitor-ing is increasingly deployed across heterogeneous consumer hardware simultaneously, a research cohort might combine participants’ own smartwatches with study-issued research-grade sensors, and a single participant’s device mix can change mid-study as batteries die, straps break, or new hardware ships. The same pattern of mixed and changing inputs appears well beyond HAR: environmental and thermal-exposure monitor-ing combines low-cost modular sensing hardware [1] with models that draw on meteorological measurements, imagery, and physical priors [2]–[6], and multimodal reasoning systems must work with whichever evidence is available [7]. A model that requires retraining, or even re-specification of its input schema, every time the sensor population shifts is a genuine deployment obstacle, independent of its accuracy on any single fixed benchmark. This motivates evaluating not only whether a representation transfers across devices, but whether it remains usable, without retraining, when the specific set of available sensors changes after deployment. A closely related and fast-growing line of work targets arXiv:2611.19027v1 [cs.LG] 13 Nov 2026 the missing-modality half of this problem for physiological and wearable signals. PhysioME [8] combines contrastive and masked-prediction pretraining with a dedicated restora-tion decoder that reconstructs missing-modality tokens from observed ones. PhysioOmni [9] learns a decoupled multi-modal tokenizer with shared and modality-private codebooks, then applies resilient fine-tuning with prototype alignment to handle arbitrary missing modalities in EEG/ECG/EOG/EMG brain-computer-interface tasks. CognifySSL v2.0 [10] pairs contrastive and masked objectives with an explicit modality-presence predictor and reconstruction decoder for wearable IMU and physiological streams. All three share a repair philos-ophy: something is trained to estimate what a missing sensor would have said. HeteroWear takes the opposite design stance, common to masked-autoencoding work in vision [11], [12] but less explored for cross-dataset wearable heterogeneity: a missing sensor is never reconstructed, only omitted from the attention computation via a padding mask. This is a design difference, not a claimed superiority. These systems use different tasks and protocols, so we position HeteroWear against them conceptually (Section II). This distinction motivates three research questions.  
+
+> •
+
+RQ1: Does heterogeneous self-supervised pretraining im-prove downstream transfer after controlling for architec-ture and sensor availability, even when the target dataset is completely excluded from pretraining?  
+
+> •
+
+RQ2: Does sensor-aware pretraining improve generaliza-tion to unseen devices beyond an identical full-channel architecture trained from scratch?  
+
+> •
+
+RQ3: Does structured pretraining improve robustness to sensor loss, and which components of HeteroWear account for this behavior? Our contributions are: (1) a hierarchical sensor-aware archi-tecture that separates within-sensor temporal modeling from cross-sensor relational modeling and uses latent cross-attention to fuse a variable set of available sensors without imputa-tion; (2) self-supervised representation learning over an eight-dataset heterogeneous wearable corpus using explicit modal-ity, location, device, and sampling-rate context together with structured sensor dropout, cross-configuration consistency, and masked sensor modeling; and (3) a controlled leave-one-dataset-out evaluation against the identical full-channel archi-tecture trained from scratch, together with held-out-device, missing-sensor, and mechanism-ablation experiments. II. R ELATED WORK 
+
+Supervised HAR on wearable sensors has a long his-tory of purpose-built architectures evaluated on single, fixed-configuration benchmarks. DeepConvLSTM [13] combines convolutional feature extraction with recurrent layers and remains a standard strong baseline on PAMAP2 [14] and HHAR [15]. Transformer architectures [16] adapted to the same single-channel setting can outperform convolutional-recurrent hybrids given sufficient data [17]. PatchTST [18] established patch-based tokenization as an effective general recipe for time-series Transformers; HeteroWear adopts the same patching principle but replaces PatchTST’s channel-independent weight sharing with explicit context embeddings, since our channels come from different datasets, devices, and physical sensor types rather than repeated measurements of a comparable kind. Self-supervised learning for wearable HAR largely follows the pretrain-then-fine-tune recipe from vision and language. Haresamudram et al. find that self-supervised pretraining im-proves downstream label efficiency for accelerometer-based HAR relative to training from scratch [19], [20]. LIMU-BERT [21] applies BERT-style [22] masked reconstruction to inertial data within a small device family; we adopt the same masked-reconstruction convention for our single-channel con-trol to test whether it alone explains our results. CroSSL [23] handles missing modalities through latent masking but is only partially cross-device. Yuan et al. [24] pretrain on 700,000 person-days of UK Biobank accelerometer data and show the representation generalizes across external benchmarks, demon-strating that scale can substitute for architectural heterogeneity handling when the modality is fixed to a single accelerometer stream. HeteroWear pretrains jointly across genuinely different modalities, locations, and devices at a comparatively modest data scale, testing whether architecture can substitute for scale rather than the reverse. Structured sensor dropout is related to dropout-style stochastic regularization, including selective variants that op-erate on individual neurons [25]; our variant removes whole sensors, so the removal is a property of the input configu-ration rather than of the network. Missing or heterogeneous inputs are also a general concern in multimodal learning, for example when verifying claims against text and images [7] or estimating thermal exposure from varying combinations of imagery and meteorological inputs [3]–[5], and learning from heterogeneous, partially labeled sources recurs in text analysis of social media [26]–[28]. Table I summarizes where HeteroWear sits relative to the closest prior systems. PhysioME, PhysioOmni, and Cogni-fySSL v2.0 share a repair philosophy for missing modali-ties and evaluate on modality sets (e.g., EEG/EOG/ECG, or IMU/ECG/EDA) that are fixed across training and test. To our knowledge, none pretrains jointly across independently collected datasets with different device hardware for the same 
+
+modality, which is the specific heterogeneity that HHAR and WISDM present and that HeteroWear is built around. Het-eroWear’s padding-mask design has no reconstruction compo-nent, and correspondingly cannot produce an explicit imputed estimate of what a missing sensor would have read, only a joint representation that remains usable without it. Neither design is strictly better; they answer different questions. III. D ATASETS 
+
+HeteroWear pretrains on eight datasets, summarized in Table II. PAMAP2 [14] records accelerometer, gyroscope, and magnetometer data from hand, chest, and ankle units across nine subjects performing eighteen structured activities span-ning everyday movement (walking, sitting, ironing) and ath-TABLE I QUALITATIVE COMPARISON OF CLOSELY RELATED SELF -SUPERVISED METHODS , BASED ON THE SETTING EACH PAPER DESCRIBES .
+
+Method Missing-modality handling Cross-device # datasets 
+
+CroSSL [23] latent masking partial 1–2 LIMU-BERT [21] N/A (single modality) small 1Yuan et al. [24] N/A (single modality) no 1 (very large) MultiMAE [12] masking + reconstruction no 1 (vision) PhysioME [8] restoration decoder no 2PhysioOmni [9] decoupled codebooks no 6CognifySSL v2.0 [10] presence predictor + decoder no 2
+
+HeteroWear (ours) padding mask, no reconstruction yes 8
+
+“Cross-device” indicates whether the pretraining corpus spans multiple hardware platforms for the same modality (e.g., phone- and watch-worn accelerometers), the heterogeneity targeted by HeteroWear. 
+
+letic exertion (running, cycling, rope jumping). WISDM [29] records phone- and watch-worn accelerometer and gyroscope data from 51 subjects across 18 activities, including several fine hand-motion classes (eating soup, eating chips, eating a sandwich, folding clothes, typing) alongside coarser locomo-tion; it is the clearest cross-device instance in the corpus since the same activity is captured by two independent hardware platforms simultaneously. HHAR [15] was built specifically to study sensing heterogeneity across a mix of smartphone and smartwatch models with different sampling rates, covering six coarse locomotion activities. HARTH [30] records two chest-and thigh-worn accelerometers from 22 subjects in a free-living, professionally annotated setting rather than a controlled laboratory protocol. UCI-HAR [31] is the most homogeneous, single-device dataset in the corpus, phone-worn accelerometer and gyroscope only, with six basic locomotion classes. PPG-DaLiA [32] and WESAD [33] share an identical wrist-and-chest sensor pair; WESAD’s labels are affect states rather than activities and contribute to pretraining only. MMASH [34] is a single 24-hour free-living session per subject and likewise pretraining-only. Five of eight datasets provide usable activity labels for downstream evaluation, and HHAR downstream evaluation uses wrist-worn channels, following established convention [15].                              
+
+> TABLE II PRETRAINING CORPUS .
+> Dataset Subj. Windows Modalities
+> PAMAP2 ∗914,322 ACC, GYRO, MAG, HR WESAD 15 43,363 ACC, ECG, EDA, RESP, TEMP PPG-DaLiA 15 64,672 PPG, ACC, ECG, RESP, TEMP MMASH 22 58,027 ACC, HR WISDM ∗51 72,928 ACC, GYRO HHAR ∗944,212 ACC, GYRO HARTH ∗22 51,656 ACC UCI-HAR ∗30 9,081 ACC, GYRO
+> Total 173 358,261
+> Asterisked datasets have usable activity labels.
+
+Unifying eight independently collected datasets surfaced concrete data-quality problems that would otherwise have silently degraded pretraining. PAMAP2’s raw inertial columns, not only its heart-rate column, encode dropped wireless pack-ets as the literal string NaN ; unfiltered, these silently poison every downstream per-window statistic. WISDM’s raw times-tamps are not globally monotonic within a subject, inflating apparent recording duration by orders of magnitude without correction. UCI-HAR records separate experiment sessions per subject without offsetting their local clocks, so naive windowing can select channels from two sessions that overlap in local time as though simultaneous; we deduplicate channels sharing modality and location, keeping the one with greater coverage. HHAR’s raw device timestamps contain isolated multi-year jumps consistent with a hardware clock fault. Two of these were found via their downstream effect rather than manual inspection: the PAMAP2 corruption first surfaced as a masked-modeling loss that never left a four-digit value, and the value of per-instance signal normalization (Section IV) was established the same way, on a loss that converged quickly but plateaued roughly four orders of magnitude too high. IV. M ETHOD 
+
+HeteroWear is designed around two distinct sources of struc-ture in heterogeneous wearable data: temporal structure within an individual sensor stream and relational structure between simultaneously available sensors 1. Rather than concatenating every sensor patch into one global sequence, the architecture models these two levels hierarchically. Figure 1 summarizes the complete architecture. For each available sensor, HeteroWear first encodes its tem-poral patches with a modality-shared temporal Transformer. The resulting sensor-level representations are augmented with embeddings describing modality, body location, device class, and native sampling rate and then processed jointly by a cross-sensor Transformer. Finally, a small set of learned latent queries cross-attends to the available sensor representations to produce a fixed-dimensional fused representation for down-stream prediction. This separation allows the same model to operate on arbitrary subsets of available sensors while assigning different modeling roles to temporal dynamics and cross-sensor interactions. 
+
+> 1Code: https://github.com/yasamanmohammdpour/HeteroWear ACC wrist smartwatch 32 Hz GYRO chest IMU 100 Hz PPG wrist smartwatch 64 Hz ECG chest research device 700 Hz
+
+(1) SENSOR-AWARE TOKENIZER 
+
+> (Per Sensor Stream) Variable number of sensors (per window)
+> (I) Normalize (zero-mean, unit-std) (III) Modality-specific srided Conv1d (tokenizer) ... P=8 patches ... P=8 patches ... P=8 patches ... P=8 patches Tokenizer (m) Tokenizer (m) Tokenizer (m) Tokenizer (m) ... d=128 ... d=128 ... d=128 ... d=128
+
+(2) WITHIN-SENSOR TEMPORAL ENCODER 
+
+> (Shared per Modality)
+> Within-sensor temporal Transformer encoder (2 layers, 4 heads, pre-norm)
+> Average Pool (sensor-level embedding) d=128
+
+(3) SENSOR CONTEXT EMBEDDING (Additive) 
+
+> (context vector) d=128 (sensor representation with context) d=128
+> . . . . . .
+
+(4) CROSS-SENSOR TRANSFORMER 
+
+Cross-sensor Transformer 
+
+> (4 layers, 4 heads, pre-norm)
+> ...
+> Add [CLS] token
+
+Cross-Attention 
+
+> (queries attend to cross-sensor outputs)
+> ...
+> Latent queries Mean Pool
+> (fused representation) d=128
+
+THREE PRETRAINING OBJECTIVES (3) MASKED SENSOR MODELING (acts INSIDE View B's encoder pass) (2) CROSS-CONFIGURATION CONSISTENCY (acts on pooled outputs) (1) STRUCTURED SENSOR DROPOUT (acts BEFORE tokenization) 
+
+Original window's available sensors 
+
+> Sensor 1 Sensor 2 Sensor N . . .
+> View A (random dropout) View B (independent random dropout)
+
+Drop rules (independently per view) 
+
+> - Drop whole modality with p = 0.25 - Drop whole location with p = 0.25 - Drop a single channel with p = 0.20
+
+View A pipeline View B pipeline Pooled A
+
+Pooled B
+
+InfoNCE Loss 
+
+(pooled A[i], pooled B[i]) = positives (pooled A[i], pooled B[i j]) = negatives 
+
+> Encourages same window to have similar representation regardless of dropped sensors.
+
+View B pipeline 
+
+(shared masked forward pass) 
+
+> View B (fused / pooled representation) token-level outputs (all patch tokens)
+
+- 40% token masking - Temporal encoder 
+
+> - Linear reconstruction head
+
+- Predict mean/std - 3-axis 6 values - Scalar 2 values Latent Query Agg 
+
+> (Fixed-Dimensional Out)
+
+... Arbitrary subset present 
+
+> (II) Interpolate to P=8 patches L= 16 samples sum
+
+Fig. 1. HeteroWear architecture. Sensor streams are temporally encoded, augmented with sensor-context information, jointly modeled across sensors, and fused through learned latent queries. The self-supervised objectives promote robustness to heterogeneous and missing sensor configurations. 
+
+A. Sensor-Aware Tokenization 
+
+Each window is represented as a variable-cardinality set of sensor streams. A sensor stream is a time series associated with one physical modality, body location, and device. Let 
+
+xs ∈ RTs×as (1) denote sensor s, where as = 3 for vector-valued inertial modalities (accelerometer, gyroscope, and magnetometer) and 
+
+as = 1 for scalar physiological channels. Each stream is normalized independently to zero mean and unit variance, preventing high-amplitude modalities from dominating the shared representation. Because datasets use different sampling rates and window durations, every present sensor is interpolated to P = 8 temporal patches of L = 16 
+
+samples, that is, 128 samples per stream regardless of its native rate. The native sampling rate is therefore not visible in the resampled signal and is supplied to the model separately through the sampling-rate embedding described below. A modality-specific strided Conv1d tokenizer maps each patch to a d = 128 representation, 
+
+es,p = Tokenizer m(s) (xs,p ) , p = 1 , . . . , P, (2) where m(s) denotes the modality of sensor s. Tokenizer parameters are shared across all datasets, devices, and body locations belonging to the same physical modality. Thus, for example, wrist, phone, chest, and ankle accelerometers use the same accelerometer tokenizer. A learned temporal-position embedding Etime (p) is added to each patch token, 
+
+˜es,p = es,p + Etime (p). (3) Fixing the number of patches rather than the raw number of samples provides a common temporal representation across heterogeneous native sampling rates while keeping the com-putational cost bounded. 
+
+B. Within-Sensor Temporal Encoder 
+
+Temporal structure is modeled independently for each avail-able sensor before information is exchanged across sensors. For sensor s, its P patch representations are processed by a two-layer, four-head pre-norm Transformer encoder, 
+
+Hs = Transformer temp ,m (s) ([˜ es, 1, . . . , ˜es,P ]) . (4) Temporal-encoder parameters are shared between sensors of the same modality, so an accelerometer observed on a wrist, phone, chest, or ankle is modeled with the same tempo-ral dynamics while its provenance is represented separately through sensor context. The contextual patch representations are pooled to obtain one sensor-level embedding, 
+
+hs = 1
+
+P
+
+PX
+
+p=1 
+
+Hs,p . (5) This stage deliberately isolates intra-sensor temporal modeling from cross-sensor fusion: patches from unrelated sensors do not compete for attention during temporal encoding. 
+
+C. Sensor Context Embeddings 
+
+The same modality can have different semantics depending on where and how it is measured. We therefore attach explicit provenance information to each sensor-level representation. For sensor s, the context vector is 
+
+cs = Emod (ms) + Eloc (ℓs) + Edev (ds) + Erate (fs), (6) where modality, body location, and device class are repre-sented by learned lookup embeddings. Native sampling rate 
+
+fs is encoded using a small MLP, 
+
+Erate (fs) = MLP (log(1 + fs)) . (7) The sensor representation passed to the cross-sensor stage is 
+
+us = hs + cs. (8) Explicit context prevents the encoder from treating, for ex-ample, a research-grade 100 Hz chest accelerometer and a 32 Hz consumer wrist accelerometer as interchangeable simply because they measure the same physical modality. 
+
+D. Cross-Sensor Relational Encoder 
+
+Given the S sensors available in a window, their contextu-alized representations are collected into 
+
+U = [ u1, . . . , u S ] ∈ RS×d. (9) A four-layer, four-head cross-sensor Transformer then models relationships among available sensors, 
+
+V = Transformer sensor (U ). (10) This stage learns relationships that are difficult to represent us-ing independent sensor encoders alone, including redundancy between phone and watch accelerometers, complementary motion information across body locations, and interactions between physiological and inertial signals. Critically, S is not fixed. If a sensor is unavailable, its representation is simply absent from U . Batches are padded to the largest sensor set in the batch, and a padding mask prevents attention to nonexistent sensors. No missing sensor value or latent representation is imputed. 
+
+E. Latent Cross-Attention Fusion 
+
+A variable sensor set must ultimately be converted to a fixed-dimensional representation for downstream prediction. Rather than mean-pooling all sensors into one vector, we use 
+
+K = 4 learned latent queries 
+
+Q ∈ RK×d. (11) The latent queries cross-attend to the contextualized sensor representations, with the available sensor representations pro-viding keys and values, 
+
+Z = CrossAttn( Q, V, V ). (12) A subsequent latent self-attention block allows information captured by different queries to interact, 
+
+˜Z = Transformer latent (Z). (13) The final window-level representation is 
+
+g = 1
+
+K
+
+> K
+
+X
+
+> k=1
+
+˜Zk, (14) and the downstream classification head operates on g. This latent-fusion stage serves two purposes. First, its computa-tional cost depends only weakly on the number of available sensors because the number of learned queries is fixed. Sec-ond, it allows the model to selectively aggregate complemen-tary or redundant sensor information rather than requiring a single pooled vector to summarize every sensor interaction. 
+
+F. Self-Supervised Pretraining Objectives 
+
+HeteroWear combines three complementary pretraining mechanisms. Structured sensor dropout changes which sensors are available to the model; cross-configuration consistency encourages different sensor subsets of the same underlying window to produce similar global representations; and masked sensor modeling requires each temporal encoder to capture local signal structure. 
+
+1) Structured Sensor Dropout: For every augmented view, complete modalities are independently removed with proba-bility pmod = 0 .25 , complete body locations with probability 
+
+ploc = 0 .25 , and remaining individual sensor channels with probability pch = 0 .20 . If all sensors would otherwise be removed, one sensor is restored at random. Dropout is ap-plied before the temporal encoders, so removed sensors are genuinely absent from both the temporal and cross-sensor computation. The hierarchy approximates three realistic failure modes: loss of an entire sensor type, disappearance of a complete worn device or body location, and failure of an individual channel while colocated sensors remain available. 
+
+2) Cross-Configuration Consistency: Two independently sampled structured-dropout views of the same window, x(A)
+
+> i
+
+and x(B) 
+
+> i
+
+, are processed through the complete HeteroWear encoder and latent-fusion stage, producing fused represen-tations g(A) 
+
+> i
+
+and g(B) 
+
+> i
+
+. We optimize a symmetric InfoNCE objective [35], 
+
+Lcons = 12 [CE( SAB /τ, y ) + CE( SBA /τ, y )] , (15) where SAB = sim( GA, G B ), SBA = sim( GB , G A), yi = i
+
+identifies the matching view of sample i, and τ = 0.1.The objective encourages the fused representation of the same physical window to remain stable even when different modalities, locations, or individual channels are available. 
+
+3) Per-Axis Masked Sensor Modeling: Masked sensor mod-eling (MSM) operates within the temporal stage. A fraction 
+
+r = 0 .4 of real patch tokens from present sensors is replaced by a learned mask embedding before the temporal Trans-former. For each masked patch, a linear prediction head ap-plied to the corresponding contextual temporal output predicts the normalized per-axis mean and standard deviation of the original patch. Vector-valued inertial sensors therefore use six targets (mean and standard deviation for each of three axes), while scalar modalities use the corresponding scalar statistics. The per-axis target preserves directional structure that is lost when all axes are pooled into one statistic. In a preliminary development experiment, replacing the pooled target with the per-axis formulation improved linear-probe macro-F1 by 0.043 on WISDM and 0.032 on HARTH. Unlike missing-modality reconstruction systems, MSM reconstructs only temporally masked patches from sensors that are actually present; a sensor removed by structured dropout has no token and no reconstruction target. 
+
+G. Overall Pretraining Objective 
+
+The complete objective is 
+
+L = Lcons + λLmsm , λ = 1 . (16) Structured sensor dropout does not introduce a separate scalar loss; instead, it defines the sensor configurations supplied to both the consistency and masked-modeling objectives. The complete corpus contains eight datasets and 358,261 windows, but the primary controlled experiments use the leave-one-dataset-out protocol of Section V: when dataset D is evaluated downstream, all windows from D are excluded from self-supervised pretraining and the encoder is trained only on the remaining seven datasets. Unless otherwise specified, pretrain-ing uses AdamW, batch size 64, a 400-step linear learning-rate warmup to 3 × 10 −4 followed by cosine decay, and gradient clipping at 1.0. V. E XPERIMENTAL SETUP 
+
+A. Baselines and Controls 
+
+We evaluate against four supervised HAR baselines trained from scratch per dataset on a single primary accelerometer channel: a random forest (RF) using 15 handcrafted statis-tics, a three-block one-dimensional CNN, DeepConvLSTM (DCLSTM) [13], and a compact three-layer patch Transformer (Transformer). These baselines follow the conventional single-stream HAR setting and use exactly the same downstream subject splits and window boundaries as HeteroWear. They are our own implementations under our protocol, with a single accelerometer channel as input, whereas HeteroWear uses all sensors available in each dataset. To isolate the effect of self-supervised pretraining from architecture and sensor availability, we train an identical full-channel hierarchical model from random initialization using only downstream supervision (HW-S CRATCH ). HW-LODO is the same architecture with heterogeneous leave-one-dataset-out pretraining. Consequently, HW-S CRATCH and HW-LODO differ only in whether heterogeneous self-supervised pretraining is used. HW-S CRATCH is not trained with structured sensor dropout. 
+
+B. Metric 
+
+Macro-averaged F1 is the primary metric throughout be-cause activity-class distributions are imbalanced within every downstream dataset. Accuracy can overweight frequent classes and obscure failures on less represented activities, whereas macro-F1 weights each activity class equally. 
+
+C. Leave-One-Dataset-Out Pretraining 
+
+The primary controlled evaluation uses leave-one-dataset-out (LODO) self-supervised pretraining. For a downstream tar-get dataset D, every window belonging to D is excluded from pretraining. HeteroWear is pretrained using only the remaining seven datasets and is subsequently linear-probed or fine-tuned using labeled training subjects from D. Thus, when HHAR is the downstream benchmark, no labeled or unlabeled HHAR window is encountered during self-supervised representation learning. The same procedure is independently repeated for PAMAP2, WISDM, HARTH, and UCI-HAR. This protocol distinguishes genuine cross-dataset transfer from transductive pretraining on the eventual target distribution. LODO removes the target dataset but not its device types: other pretraining datasets contain similar hardware, such as the phones and watches in WISDM and HHAR. 
+
+D. Subject-Level Evaluation 
+
+All downstream evaluation is subject-disjoint. PAMAP2 and HHAR use exhaustive nine-fold leave-one-subject-out evaluation. For each fold, one subject is held out for testing and no window from that subject is used for training or validation. WISDM, HARTH, and UCI-HAR use subject-disjoint splits, and every method in a comparison uses the same splits and window boundaries. For every comparison between HW-S CRATCH and HW-LODO, the exact same subject folds, validation subjects, classifier hyperparameters, and stopping criteria are used. Model selection is based exclusively on validation macro-F1. 
+
+E. Linear Probing and Fine-Tuning 
+
+Linear probing freezes the pretrained encoder, extracts one representation per window with no masking or sensor dropout, and trains logistic regression on the resulting embeddings. Fine-tuning uses a two-stage schedule. During the first 15% of optimization steps, the encoder remains frozen while only the classification head is trained. The encoder is subsequently un-frozen and jointly optimized using a cosine-decayed learning rate of 5×10 −5 for the encoder and 10 −3 for the classification head. The best validation checkpoint is used for test evaluation. 
+
+F. Single-Channel SSL Control 
+
+To determine whether generic masked self-supervised pre-training alone explains HeteroWear’s performance, the com-pact Transformer used as the supervised baseline is pre-trained jointly on the primary channels of the five downstream datasets using per-axis masked sensor modeling, then fine-tuned independently on each dataset. This model is denoted Transformer SSL .
+
+G. Missing-Sensor Evaluation 
+
+Sensor robustness is evaluated after downstream training, without retraining the classifier on degraded inputs. A fixed classifier is first trained using full-channel representations. At test time, a fraction d ∈ { 0, 0.25 , 0.50 , 0.75 } of available chan-nels is removed while always retaining at least one channel. The controlled comparison applies exactly the same randomly sampled 50%-channel-removal masks to HW-S CRATCH and HW-LODO. We define retention as 
+
+R50 = F 150% channel loss 
+
+F 1full 
+
+× 100 . (17) H. Held-Out-Device Evaluation 
+
+Because subject-level evaluation does not directly establish generalization to unseen hardware, we additionally evaluate device-level transfer on WISDM and HHAR. For WISDM, phone-to-watch and watch-to-phone transfer are evaluated sep-arately. For HHAR, complete device models are held out from downstream training and used exclusively for testing. Both HW-S CRATCH and HW-LODO use identical device splits, making the comparison a direct test of whether heterogeneous pretraining improves transfer to unseen sensing hardware. 
+
+I. Mechanism Ablation 
+
+The full objective combines masked sensor modeling (MSM), cross-configuration consistency, and structured sensor dropout. We run the ablation on HHAR because it is the benchmark on which heterogeneous-device transfer produces the clearest controlled improvement. Under the LODO proto-col and the hierarchical architecture, we retrain with (i) MSM only, (ii) MSM plus cross-configuration consistency without structured dropout, (iii) MSM plus structured dropout without consistency, and (iv) the full objective. Separately, we remove the sensor-context embeddings while keeping the full objective and architecture. All variants use the same downstream folds and training procedure, and we report full-channel macro-F1, macro-F1 under 50% channel removal, and retention. VI. R ESULTS 
+
+A. Controlled Cross-Dataset Transfer 
+
+Table III provides the primary comparison. HW-S CRATCH 
+
+and HW-LODO use the identical hierarchical architecture, complete available sensor set, subject folds, and downstream training procedure; their only systematic difference is het-erogeneous self-supervised pretraining. Pretraining improves the identical architecture on all five downstream benchmarks. Mean macro-F1 rises from 0.688 for HW-Scratch to 0.724 for HW-LODO, an average absolute improvement of 0.037. The gains are comparatively consistent on PAMAP2 (+0.025), WISDM (+0.028), HARTH (+0.026), and UCI-HAR (+0.022), while HHAR exhibits a substantially larger +0.082 improve-ment. HW-Scratch already improves HHAR from 0.563 (single-accelerometer Transformer) to 0.741, showing that access to multiple sensor streams and the hierarchical architecture account for part of the gap. Self-supervised pretraining then raises performance from 0.741 to 0.823. HHAR is entirely absent from LODO pretraining, so this improvement does not depend on prior exposure to unlabeled HHAR windows. Relative to the single-accelerometer Transformer, HW-LODO obtains the highest macro-F1 on four of five datasets, with modest margins on PAMAP2 (+0.008), HARTH (+0.005), and UCI-HAR (+0.007) and a large one on HHAR (+0.260). WISDM is the exception, where the Transformer is better by 0.014. Because these baselines use one accelerometer channel while HeteroWear uses all available sensors, the primary comparison in Table III is Scratch versus LODO. 
+
+B. Held-Out-Device Generalization 
+
+Table IV tests the cross-device hypothesis directly by eval-uating hardware configurations excluded from downstream training. HeteroWear improves macro-F1 in every held-out-device condition, with absolute gains from +0.053 to +0.079 and a mean improvement of +0.066. On WISDM, phone-to-watch transfer improves from 0.491 to 0.556 and watch-to-phone from 0.538 to 0.591; on HHAR, the two held-out-device evaluations improve by +0.079 and +0.068. This clarifies a distinction that subject-level evaluation can-not establish. The advantage is not limited to recognizing unseen participants on familiar devices; it persists when the downstream hardware changes. Together, LODO pretraining and held-out-device evaluation test two forms of general-ization: transfer to an unseen dataset during representation learning, and transfer to unseen hardware during downstream evaluation. 
+
+C. Controlled Missing-Sensor Robustness 
+
+We next compare HW-Scratch and HW-LODO under iden-tical test-time sensor failures. Table V reports full-channel macro-F1, performance with 50% sensor removal, and relative retention. HW-Scratch retains an average of 64.1% of its full-channel macro-F1 after half of the available channels are removed, whereas HeteroWear retains 73.8%, an improvement of 9.7 percentage points. The retention benefit is observed on every dataset: +10.9 points on PAMAP2, +8.6 on WISDM, +8.0 on HHAR, +10.3 on HARTH, and +10.7 on UCI-HAR. Robust-ness does not simply track the full-channel advantage: HARTH improves by only +0.026 macro-F1 under full sensor availabil-ity, yet its retention increases from 63.8% to 74.1%. Figure 2 shows that HW-LODO degrades more gracefully than HW-Scratch as sensor availability decreases. Since HW-Scratch is not trained with structured sensor dropout, the retention gap reflects pretraining with structured dropout; the mechanism ablation below isolates which pretraining components drive it. 
+
+D. Mechanism Ablation 
+
+To determine which components produce the HHAR trans-fer and robustness advantage, Table VI removes the principal pretraining mechanisms while preserving the hierarchical ar-chitecture and LODO protocol. MSM alone increases full-channel macro-F1 from 0.741 to 0.758 but does not improve sensor-loss robustness: retention decreases slightly from 76.0% to 73.9%. Masked reconstruc-tion therefore provides useful representation learning but is insufficient to explain graceful degradation under changing sensor configurations. Since this variant is pretrained on the same heterogeneous corpus, it also indicates that heteroge-neous pretraining alone does not account for the retention gain. Adding cross-configuration consistency without structured dropout raises macro-F1 to 0.787 with 77.0% retention. Struc-tured dropout without consistency reaches 0.801 macro-F1 and 81.1% retention, indicating that explicit exposure to changing sensor availability has the larger effect on robustness. The TABLE III SUBJECT -LEVEL MACRO -F1 ACROSS FIVE DOWNSTREAM DATASETS . RF, CNN, DCLSTM, AND TRANSFORMER USE A SINGLE ACCELEROMETER CHANNEL ; S CRATCH AND LODO USE ALL AVAILABLE SENSORS . ∆SSL = LODO − SCRATCH .
+
+Dataset RF CNN DCLSTM Transformer HW-Scratch HW-LODO ∆SSL 
+
+PAMAP2 .609 .733 .475 .748 .731 .756 +.025 
+
+WISDM .627 .716 .686 .718 .676 .704 +.028 
+
+HHAR .532 .513 .428 .563 .741 .823 +.082 
+
+HARTH .431 .498 .470 .547 .526 .552 +.026 
+
+UCI-HAR .660 .775 .769 .779 .764 .786 +.022 Mean .572 .647 .566 .671 .688 .724 +.037 0 25 50 75       
+
+> Sensor channels removed (%)
+> 0.2 0.3 0.4 0.5 0.6 0.7 0.8
+> Macro-F1
+> (a) Controlled sensor loss
+> HW-Scratch HW-LODO
+> 025 50 75
+> Sensor channels removed (%)
+> 30 40 50 60 70 80 90 100
+> Retention (%)
+> (b) Mean retention
+> HW-Scratch HW-LODO
+> Fig. 2. Robustness to sensor loss. Macro-F1 and mean performance retention for HW-Scratch and HW-LODO under increasing test-time sensor removal. TABLE IV HELD -OUT -DEVICE MACRO -F1. HW-S CRATCH AND HETERO WEAR USE IDENTICAL TARGET -DEVICE SPLITS .
+
+Dataset Transfer Scratch HeteroWear ∆
+
+WISDM phone → watch 0.491 0.556 +0.065 
+
+WISDM watch → phone 0.538 0.591 +0.053 
+
+HHAR held-out device A 0.676 0.755 +0.079 
+
+HHAR held-out device B 0.703 0.771 +0.068 Mean — 0.602 0.668 +0.066 
+
+complete objective performs best on both criteria, reaching 0.823 macro-F1 and 0.691 after 50% channel loss (84.0% retention). Relative to MSM alone, the full objective improves macro-F1 by 0.065 and retention by 10.1 percentage points. The mechanisms therefore appear complementary: consistency encourages representations of the same underlying window to remain similar across sensor configurations, while structured dropout exposes the encoder to the failure patterns it later encounters at inference time. Removing the modality, location, device, and rate context decreases macro-F1 from 0.823 to 0.781 despite preserving the hierarchical architecture and complete SSL objective. Re-tention remains comparatively high (81.8%), so sensor context appears to contribute mainly to accuracy rather than robust-ness. This supports explicitly identifying sensor provenance when a shared representation is learned across heterogeneous devices and body locations. 
+
+E. Single-Channel Self-Supervised Control 
+
+Table VII asks whether masked reconstruction alone im-proves the conventional Transformer when heterogeneous mul-timodal modeling is removed. Single-channel masked reconstruction does not reproduce the behavior of HeteroWear. It decreases downstream macro-F1 on PAMAP2, WISDM, HARTH, and UCI-HAR and im-proves only HHAR. Read together with Table III, where the hierarchical HeteroWear model improves over its matched scratch control on all five datasets, this suggests that the gain depends on the interaction between heterogeneous sensor modeling and the pretraining objectives rather than on self-supervision in isolation. VII. D ISCUSSION 
+
+The controlled hierarchical comparison separates the effects of self-supervised pretraining from those of architecture and richer sensor input. HW-Scratch and HW-LODO share the same architecture and sensor inputs, yet LODO pretraining improves mean macro-F1 from 0.688 to 0.724 across all five datasets, with the largest gain on HHAR (+0.082), showing that heterogeneous pretraining provides benefits beyond sim-ply exposing the classifier to more sensors. Held-out-device experiments are consistent with this: HeteroWear improves TABLE V ROBUSTNESS UNDER 50% TEST -TIME SENSOR REMOVAL . S: HW-S CRATCH ; L: HW-LODO; R ET .: F 150 /F 1full .
+
+Dataset S-Full S-50 S-Ret. L-Full L-50 L-Ret. 
+
+PAMAP2 .731 .402 55.0% .756 .498 65.9% 
+
+WISDM .676 .447 66.1% .704 .526 74.7% 
+
+HHAR .741 .563 76.0% .823 .691 84.0% 
+
+HARTH .526 .336 63.8% .552 .409 74.1% 
+
+UCI-HAR .764 .456 59.7% .786 .553 70.4% Mean – – 64.1% – – 73.8%      
+
+> TABLE VI MECHANISM ABLATION ON HHAR. R ETENTION IS F150 /F 1full .
+
+Configuration F1 F1@50% Ret. 
+
+Scratch (no pretraining) 0.741 0.563 76.0% MSM only 0.758 0.560 73.9% MSM + consistency 0.787 0.606 77.0% MSM + struct. dropout 0.801 0.650 81.1% 
+
+Full objective 0.823 0.691 84.0% 
+
+Full, no context emb. 0.781 0.639 81.8%   
+
+> TABLE VII SINGLE -CHANNEL MASKED -RECONSTRUCTION SSL CONTROL
+> (MACRO -F1).
+
+Dataset Transf. Transf. SSL ∆
+
+PAMAP2 0.748 0.671 −0.077 
+
+WISDM 0.718 0.512 −0.206 
+
+HHAR 0.563 0.634 +0 .071 
+
+HARTH 0.547 0.253 −0.294 
+
+UCI-HAR 0.779 0.706 −0.073 
+
+macro-F1 on held-out devices by 0.053–0.079 across WISDM and HHAR, with a mean gain of 0.066, indicating that the HHAR improvement is not due only to a favorable subject split and that the representation transfers when the downstream sensing hardware changes. HeteroWear also retains more performance under missing sensors, keeping 73.8% of full-channel performance after 50% channel removal compared with 64.1% for the identical architecture trained from scratch. The ablations show that MSM alone provides little robustness while structured sen-sor dropout substantially improves retention, which supports treating changing sensor availability as a pretraining condition rather than repairing missing channels only after deployment. The advantage is not uniform across benchmarks. The single-accelerometer Transformer remains slightly stronger on WISDM (0.718 versus 0.704), while gains over it on PAMAP2, HARTH, and UCI-HAR are small, consistent with HeteroWear being designed primarily for heterogeneous and changing sensor configurations rather than for replacing task-specific supervised models on homogeneous HAR bench-marks. WISDM also shows that cross-device heterogeneity alone does not guarantee an advantage: compared with HHAR, it contains finer activity distinctions, including multiple hand-centric activities that may require high-resolution local motion information. We do not vary corpus size, so the contributions of heterogeneity and of scale are not separated here. VIII. L IMITATIONS AND FUTURE WORK 
+
+Our supervised baselines use a single accelerometer channel and are our own implementations, so Table III is best read as a controlled study of pretraining rather than a state-of-the-art comparison. HW-Scratch is not trained with sensor dropout, so the retention gap reflects pretraining with structured dropout rather than heterogeneous data alone. Results are single-run without significance tests, PAMAP2 and HHAR have nine subjects each, and LODO removes the target dataset but not its device types. We also do not ablate individual sensor types, sweep sampling rates, or report latency. Future work includes published self-supervised and multi-channel baselines under identical splits, a scratch control with sensor dropout, per-sensor and sampling-rate ablations, and profiling on wearable-class hardware with efficiency techniques such as precision-adaptive optimization [36]. Controlled synthetic benchmarks with adjustable heterogeneity, built in a modular fashion [37], could separate heterogeneity from scale, and human-in-the-loop feedback [38] could help adapt a pretrained representation to a new device. IX. C ONCLUSION 
+
+HeteroWear learns wearable representations across eight heterogeneous datasets by combining within-sensor tempo-ral modeling, sensor-context encoding, cross-sensor attention, latent fusion, structured sensor dropout, cross-configuration consistency, and masked sensor modeling. Controlled eval-uation separates the effect of pretraining from architecture and sensor availability. With the target dataset excluded from self-supervised pretraining, HeteroWear improves the identical full-channel hierarchical architecture trained from scratch on all five downstream benchmarks, increasing mean macro-F1 from 0.688 to 0.724, and it exceeds a single-accelerometer Transformer on four of five datasets, with the largest gain on heterogeneous-device HHAR. The advantage persists under hardware and sensor-availability shifts: HeteroWear improves held-out-device macro-F1 by 0.066 on average and retains 73.8% of full-channel performance after 50% channel removal, compared with 64.1% for the identical architecture trained from scratch without sensor dropout. Ablations show that structured sensor dropout is particularly important for robust-ness, while cross-configuration consistency and sensor context further improve transfer. Overall, the results support explicitly modeling sensor identity and availability during representation learning. REFERENCES [1] P. Shaeri, A. Ameko, and K. Maull, “OpenIoTwx: A Low-Cost, Modular Platform for Real-Time Environmental Monitoring,” 8 2026. [Online]. Available: https://figshare.com/articles/poster/OpenIoTwx A Low-Cost Modular Platform for Real-Time Environmental Monitoring/33187860 [2] S. R. AlKhaled, A. Middel, P. Shaeri, I. Buo, and F. A. Schneider, “Webmrt: An online tool to predict summertime mean radiant tempera-ture using machine learning,” Sustainable Cities and Society , vol. 115, p. 105861, 2024. [3] P. Shaeri, S. AlKhaled, and A. Middel, “A multimodal physics-informed neural network approach for mean radiant temperature modeling,” in 
+
+2025 IEEE/CVF International Conference on Computer Vision Work-shops (ICCVW) . IEEE, 2025, pp. 6606–6615. [4] P. Shaeri, “Saud alkhaled, and ariane middel,” A multimodal physics-informed neural network approach for mean radiant temperature mod-eling , vol. 1, 2025. [5] A. Middel, P. Shaeri, R. T. Woo, and E. S. Krayenhoff, “Visionmrt: Physics-based outdoor thermal exposure and comfort modeling using photographs and 3d reconstruction,” Sustainable Cities and Society , p. 108016, 2026. [6] A. Middel, P. Shaeri, R. Woo, and E. S. Krayenhoff, “Openmrt: Outdoor thermal exposure and comfort modeling using street view imagery,” in 
+
+106th AMS Annual Meeting . AMS, 2026. [7] A. Beigi, B. Jiang, D. Li, Z. Tan, P. Shaeri, T. Kumarage, A. Bhat-tacharjee, and H. Liu, “Can llms improve multimodal fact-checking by asking relevant questions?” in 2025 IEEE International Conference on Big Data (BigData) . IEEE, 2025, pp. 2732–2741. [8] C.-H. Lee, H.-Y. Lee, M.-K. Jung, and D.-J. Kim, “Physiome: A robust multimodal self-supervised framework for physiological signals with missing modalities,” arXiv preprint arXiv:2510.11110 , 2025. [9] W.-B. Jiang, X. Fu, Y. Ding, and C. Guan, “Towards robust multimodal physiological foundation models: Handling arbitrary missing modali-ties,” arXiv preprint arXiv:2504.19596 , 2025. [10] A. H. Cisse and S. Ishimaru, “Detect and repair: Robust self-supervised wearable sensing under missing modalities,” Sensors , vol. 26, no. 8, p. 2419, 2026. [11] K. He, X. Chen, S. Xie, Y. Li, P. Doll´ ar, and R. Girshick, “Masked au-toencoders are scalable vision learners,” in 2022 IEEE/CVF conference on computer vision and pattern recognition (CVPR) . IEEE, 2022, pp. 15 979–15 988. [12] R. Bachmann, D. Mizrahi, A. Atanov, and A. Zamir, “Multimae: Multi-modal multi-task masked autoencoders,” in European conference on computer vision . Springer, 2022, pp. 348–367. [13] F. J. Ord´ o˜ nez and D. Roggen, “Deep convolutional and lstm recurrent neural networks for multimodal wearable activity recognition,” Sensors ,vol. 16, no. 1, p. 115, 2016. [14] A. Reiss and D. Stricker, “Introducing a new benchmarked dataset for activity monitoring,” in 2012 16th international symposium on wearable computers . IEEE, 2012, pp. 108–109. [15] A. Stisen, H. Blunck, S. Bhattacharya, T. S. Prentow, M. B. Kjærgaard, A. Dey, T. Sonne, and M. M. Jensen, “Smart devices are different: Assessing and mitigatingmobile sensing heterogeneities for activity recognition,” in Proceedings of the 13th ACM conference on embedded networked sensor systems , 2015, pp. 127–140. [16] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, and I. Polosukhin, “Attention is all you need,” Advances in neural information processing systems , vol. 30, 2017. [17] S. Ek, F. Portet, and P. Lalanda, “Transformer-based models to deal with heterogeneous environments in human activity recognition,” Personal and Ubiquitous Computing , vol. 27, no. 6, pp. 2267–2280, 2023. [18] Y. Nie, N. H. Nguyen, P. Sinthong, and J. Kalagnanam, “A time series is worth 64 words: Long-term forecasting with transformers,” arXiv preprint arXiv:2211.14730 , 2022. [19] H. Haresamudram, I. Essa, and T. Pl¨ otz, “Contrastive predictive coding for human activity recognition,” Proceedings of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies , vol. 5, no. 2, pp. 1–26, 2021. [20] H. Haresamudram, I. Essa, and T. Pl¨ otz, “Assessing the state of self-supervised human activity recognition using wearables,” arXiv ,2022. [Online]. Available: https://arxiv.org/abs/2202.12938 [21] H. Xu, P. Zhou, R. Tan, M. Li, and G. Shen, “Limu-bert: Unleashing the potential of unlabeled data for imu sensing applications,” in Proceedings of the 19th ACM conference on embedded networked sensor systems ,2021, pp. 220–233. [22] J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova, “Bert: Pre-training of deep bidirectional transformers for language understanding,” in Pro-ceedings of the 2019 conference of the North American chapter of the association for computational linguistics: human language technologies, volume 1 (long and short papers) , 2019, pp. 4171–4186. [23] S. Deldari, D. Spathis, M. Malekzadeh, F. Kawsar, F. D. Salim, and A. Mathur, “Crossl: Cross-modal self-supervised learning for time-series through latent masking,” in Proceedings of the 17th ACM international conference on web search and data mining , 2024, pp. 152–160. [24] H. Yuan, S. Chan, A. P. Creagh, C. Tong, A. Acquah, D. A. Clifton, and A. Doherty, “Self-supervised learning for human activity recognition using 700,000 person-days of wearable data,” NPJ digital medicine ,vol. 7, no. 1, p. 91, 2024. [25] P. Shaeri and A. Middel, “Mid-l: Matrix-interpolated dropout layer with layer-wise neuron selection,” arXiv preprint arXiv:2505.11416 , 2025. [26] P. Shaeri and A. Katanforoush, “A semi-supervised fake news detection using sentiment encoding and lstm with self-attention,” in 2023 13th International Conference on Computer and Knowledge Engineering (ICCKE) . IEEE, 2023, pp. 590–595. [27] P. Shaeri, Y. Mohammadpour, A. Beigi, and A. Middel, “Sentiment and social signals in the climate crisis: A survey on analyzing social media responses to extreme weather events,” in International Conference on Social Computing, Behavioral-Cultural Modeling and Prediction and Behavior Representation in Modeling and Simulation . Springer, 2025, pp. 56–65. [28] P. Shaeri, Y. Mohammadpour, and A. Middel, “Climateemote: Multi-task sentiment, emotion, misinformation, and stance detection in climate-related social media,” 2026. [29] G. M. Weiss, K. Yoneda, and T. Hayajneh, “Smartphone and smartwatch-based biometrics using activities of daily living,” Ieee Ac-cess , vol. 7, pp. 133 190–133 202, 2019. [30] A. Logacjov, K. Bach, A. Kongsvold, H. B. B˚ ardstu, and P. J. Mork, “Harth: a human activity recognition dataset for machine learning,” 
+
+Sensors , vol. 21, no. 23, p. 7853, 2021. [31] D. Anguita, A. Ghio, L. Oneto, X. Parra, J. L. Reyes-Ortiz et al. , “A pub-lic domain dataset for human activity recognition using smartphones.” in Esann , vol. 3, no. 1, 2013, pp. 3–4. [32] A. Reiss, I. Indlekofer, P. Schmidt, and K. Van Laerhoven, “Deep ppg: Large-scale heart rate estimation with convolutional neural networks,” 
+
+Sensors , vol. 19, no. 14, p. 3079, 2019. [33] P. Schmidt, A. Reiss, R. Duerichen, C. Marberger, and K. Van Laer-hoven, “Introducing wesad, a multimodal dataset for wearable stress and affect detection,” in Proceedings of the 20th ACM international conference on multimodal interaction , 2018, pp. 400–408. [34] A. Rossi, E. Da Pozzo, D. Menicagli, C. Tremolanti, C. Priami, A. Sˆ ırbu, D. A. Clifton, C. Martini, and D. Morelli, “A public dataset of 24-h multi-levels psycho-physiological responses in young healthy adults,” 
+
+Data , vol. 5, no. 4, p. 91, 2020. [35] T. Chen, S. Kornblith, M. Norouzi, and G. Hinton, “A simple framework for contrastive learning of visual representations,” in International conference on machine learning . PmLR, 2020, pp. 1597–1607. [36] M. Sheibanian, P. Shaeri, A. Beigi, R. T. Woo, and A. Keluskar, “Tri-accel: Curvature-aware precision-adaptive and memory-elastic optimiza-tion for efficient gpu usage,” arXiv preprint arXiv:2508.16905 , 2025. [37] P. Shaeri, A. Karimi, and A. Middel, “Mnist-gen: A modular mnist-style dataset generation using hierarchical semantics, reinforcement learning, and category theory,” in 2025 IEEE International Conference on Future Machine Learning and Data Science (FMLDS) . IEEE, 2025, pp. 330– 337. [38] P. Shaeri, R. T. Woo, Y. Mohammadpour, and A. Middel, “Explain-able human-in-the-loop segmentation via critic feedback signals,” arXiv preprint arXiv:2510.09945 , 2025.

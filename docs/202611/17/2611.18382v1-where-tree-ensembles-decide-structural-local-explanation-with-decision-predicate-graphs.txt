@@ -1,0 +1,630 @@
+Title: Where Tree Ensembles Decide: Structural Local Explanation with Decision Predicate Graphs
+
+URL Source: https://arxiv.org/pdf/2611.18382v1
+
+Published Time: Mon, 16 Nov 2026 02:53:00 GMT
+
+Number of Pages: 38
+
+Markdown Content:
+# Where Tree Ensembles Decide: Structural Local Explanation with Decision Predicate Graphs 
+
+Sylvio Barbon Junior a, ∗, Luca Longo b
+
+> aDepartment of Engineering and Architecture, University of Trieste, Via Alfonso Valerio 6/1, 34127 Trieste, Italy
+> bSchool of Computer Science and Information Technology, University College Cork, Cork, T12 XF62, Ireland
+
+Abstract 
+
+Tree ensembles are among the most accurate models for tabular data, yet the computation behind a single prediction is spread over hundreds of deci-sion rules. Feature attributions and counterfactuals explain such predictions through the influence of features or a change of the input, leaving open which of the thresholds applied by the trees a prediction responds to, while struc-tural explanations compress these rules and lose the trees behind them. To address this gap, we propose a local Decision Predicate Graph (local DPG), which gathers the rules executed for a sample into a verifiable record of the computation, with a class support that reproduces every explained predic-tion. From these rules we select the critical predicate, the executed predicate whose crossing is estimated to move the model most strongly toward a chosen class, which offers the user a concrete threshold and the trees that share it, without an external explainer. Across 16 datasets and four ensemble fam-ilies, it separates differently predicted neighbours better than random and nearest-threshold predicates. A single crossing recovers the true class in 46– 69% of wrong predictions, against 29–50% when the same rule is applied to the feature ranked first by TreeSHAP, a measure close to the selection criterion, and on planted faults it finds the faulty threshold in 46–71% of the resulting errors, against 6–21% at random. Although training-free ed-its of these predicates did not reduce the error on unseen data, the critical    
+
+> ∗Corresponding author.
+> Email addresses: sylvio.barbonjunior@units.it (Sylvio Barbon Junior),
+> LLongo@ucc.ie (Luca Longo) arXiv:2611.18382v1 [cs.LG] 13 Nov 2026
+
+predicate complements attributions and counterfactuals by naming where a prediction can be changed. 
+
+Keywords: Explainable artificial intelligence, Tree ensembles, Decision Predicate Graphs, Contrastive explanation, Counterfactual explanation, Model debugging 
+
+1. Introduction 
+
+Tree ensembles, such as random forests, bagging and gradient boosting, remain among the most accurate and widely deployed models for tabular data. Their predictions result from the aggregation of hundreds of decision trees, each of which routes the input through a sequence of threshold tests, so the computation behind a single prediction is distributed across the model. Local explanation methods aim to make this computation intelligible for one input at a time [1, 2, 3], and they serve different purposes, among them justifying a prediction, controlling what a model has learned, and improving it through an understanding of its behaviour [4]. Improvement is the use that practitioners report most often, since explanations are mainly employed to debug models [5, 6], and debugging begins with understanding why individual predictions fail [7, 8]. This paper addresses the first step of this purpose, the examination of individual predictions, and asks, for a trained ensemble and a given input, which of the predicates executed by the model, if crossed, would most change the prediction toward an alternative class. A prediction of a tree ensemble can be explained from three complemen-tary points of view. Feature attributions such as SHapley Additive exPlana-tions (SHAP) and Local Interpretable Model-agnostic Explanations (LIME) describe the influence of each input, quantifying how much it contributed to the output [9, 1, 10]. Counterfactual explanations move instead to the 
+
+input space , where they describe a change of the input that would have pro-duced a different prediction [11, 12, 13, 14]. A third view looks at the logical structure of the model, that is, at the predicates and rules that the trees actually executed, and underlies the route-based and formal explanations of tree ensembles [15, 16, 17, 18]. These perspectives are not interchangeable, and a growing body of work shows how far they can diverge. A large attri-bution does not imply that a feature affects the prediction [19], the features ranked first by attribution methods are often neither necessary nor sufficient to change it [20, 21], and Shapley values may even rank irrelevant features 2above relevant ones [22, 23]. Counterfactuals, in turn, indicate what should change in the input, yet they do not single out a predicate of the model at which the prediction can be changed. This is the question that motivates the present work, and it is the structural view that can answer it. For a single decision tree, the logical structure of a prediction is easy to describe, since it coincides with the root-to-leaf route followed by the sample, a conjunction of predicates of the form xj ≤ θ or xj > θ that reads as a rule. A tree ensemble applies many such rules at once, one per tree, some of which support the predicted class while others support an alternative class. Existing structural explanations compress, select or aggregate these routes, and in doing so they lose three elements of this computation, namely the complete set of rules that were executed, the trees that share each predicate, and the rules that lead to competing classes. Preserving these elements makes it possible to ask where, among the executed predicates, a prediction can be changed. Our hypothesis is that, when the trees of an ensemble reuse the same split thresholds, crossing a single predicate shared by a group of trees can change the prediction in a substantial share of cases, even though the evidence for a competing class is spread over many predicates, and that this part of the model’s computation is made explicit neither by attributions nor by counterfactuals. We therefore propose a structural local explanation that follows the com-putation of the ensemble for one sample. A local Decision Predicate Graph 
+
+(local DPG) gathers the executed rules into a single graph, built only from the paths of this sample rather than from a graph induced from the training data as in the original formulation of DPGs [18], and keeps on every node and edge the identity of the trees that executed it, while the class support is com-puted from the original contributions of the trees. From these rules we select the critical predicate , the executed predicate whose threshold, if crossed, is estimated to move the ensemble most strongly toward a chosen class, which addresses why the model predicted one class rather than another [24]. The contributions of this paper are organised in three levels, a structure that records the computation behind a prediction, an insight drawn from this structure, and its use on wrong predictions. 1. We propose the local DPG, which represents every predicate executed for a sample, records the trees that executed it and derives a class support that reproduced every explained prediction, at a cost of 87 to 461 ms per sample (Sections 3 and 5.4). The graph is too large to 3be read by a person, and we propose it as a verifiable record of the computation. 2. We define the critical predicate, the element offered to the user, which requires no external explainer. It exceeds random and nearest-threshold predicates on measures that do not involve its selection, and its cross-ing, which changes a single feature, alters the prediction more often than the same rule applied to the feature ranked first by TreeSHAP or LIME in most families (Section 5.1). 3. We show how the critical predicate helps to examine wrong predictions. A single crossing recovers the true class in 46–69% of cases, against 29–50% when the same rule is applied to the feature ranked first by contrastive TreeSHAP, and it locates faults planted in synthetic data (Section 5.2). The experiments cover 16 datasets and four ensemble families and are organised around four research questions, on how the critical predicate com-pares with other predicates (RQ1), wrong predictions (RQ2), training-free repair (RQ3), and cost and size (RQ4). They also mark the limits of this use, since training-free edits of the localised predicates do not reduce the error on unseen data (Section 5.3). Section 2 reviews related work through a taxonomy based on these three views. Section 3 formalises the executed traces of an ensemble and presents the local DPG, the critical predicate and its use. Section 4 describes the experimental design, and Section 5 reports the results for the four research questions. Section 6 discusses implications, scope and limitations, and Sec-tion 7 concludes the paper. 
+
+2. Related work 
+
+The introduction distinguished three views of a prediction, based on the influence of the features, on a change of the input and on the logical struc-ture of the model. We use these views to organise the explanation methods for tree ensembles in the taxonomy of Figure 1, which cuts across the usual classification by the kind of object a method returns [25, 26] and arranges the methods by the view they adopt and by their scope. It also locates the local DPG among the local structural explanations. Table 1 then compares the methods along the three levels of this paper, namely whether the expla-nation returns the executed paths of the sample (structure), which element 4Rule sets inTrees [27], SIRUS [28], RuleFit [29] 
+
+Single-tree surrogates born-again trees [30], forest-based tree [31], explainable ensemble trees [32] 
+
+Predicate graphs original DPG [18], its extension to isolation forests [33] 
+
+Route-based CHIRPS [15], LionForests [16], Bella-trex [34] 
+
+Formal abductive and majoritary reasons [17, 35], contrastive explanations [36], sufficient and necessary reasons [37] 
+
+Argumentation bipolar argumentation frame-works [38] 
+
+Local DPG (this work) executed predicates, the trees that share them and the critical predicate 
+
+Feature attribution TreeSHAP [1], path contribu-tions [39] 
+
+Local surrogates and rules LIME [10], Anchors [40], LORE [14, 41] 
+
+Counterfactuals and robustness Wachter et al. [11], feature tweaking [12], FOCUS [42], optimal counterfac-tuals [13], evasion [43], robustness verification [44] Global Local Local Local 
+
+Logical structure Influence Input space Explanations of tree ensembles 
+
+Figure 1: Taxonomy of the explanation methods for tree ensembles reviewed in Section 2, by the view of a prediction they adopt and by their scope. 
+
+it presents as decisive, in our reading of each method, and toward which class (insight), and what is changed to alter the prediction (use). 
+
+2.1. Structural explanations 
+
+Because every root-to-leaf path of a tree is a conjunctive rule, the logical structure of an ensemble can be made explicit as a set of rules. Several meth-ods describe the ensemble as a whole. inTrees, the Stable and Interpretable RUle Set (SIRUS) and RuleFit extract or recombine its rules [27, 28, 29], while others replace it with a single tree [30, 31, 32], or generate rules di-rectly from the data [45]. DPGs offer a graph-based alternative, in which the nodes are the predicates of the splits, the edges are the transitions ob-5Table 1: Positioning of explanation methods for tree ensembles, in the order of Figure 1. Scope: local (L) or global (G). Access: model-direct (d) or model-agnostic (a). Executed paths: complete, with the trees of each predicate ( ), or summarised ( ). Target class: chosen, including the true class ( ), any other class ( ), or per-class outputs without contrast ( ). Intervention: input change (I) or threshold crossing (T). A dash marks an absent property. Structure Insight Use Method Scope Access Executed paths Decisive element Target class Inter-vention inTrees [27], SIRUS [28], RuleFit [29] G d n/a – – –Single-tree surrogates [30, 31, 32] G d n/a – – –Original DPG [18, 33] G d n/a – – –CHIRPS [15] L d rule – –LionForests [16] L d rule – –Bellatrex [34] L d rules – –Abductive and sufficient reasons [17, 35, 37] L d – feature subset – –Contrastive (formal) [36] L d – feature subset –Bipolar argumentation [38] L d – arguments –TreeSHAP [1], path contributions [39] L d – feature –LIME [10] L a – feature –Anchors [40] L a – rule – –LORE [14] L a – rule –Wachter et al. [11] L a – input change IFeature tweaking [12], optimal counterfactuals [13] L d – input change IFOCUS [42] L d – input change IEvasion and robustness verification [43, 44] L d – input change ILocal DPG (this work) L d executed predicate T
+
+6served along the paths of the training data, and the model is characterised through metrics such as centrality [18], an idea later extended to isolation forests [33]. These methods describe the knowledge that an ensemble ap-plies across the data, and none of them shows which predicates produced a particular prediction. Local structural methods start from the sample at hand. Collection of High Importance Random Path Snippets (CHIRPS) condenses the patterns that recur among the executed paths into a single rule [15], LionForests selects a reduced set of paths and summarises them as feature ranges [16], and Bel-latrex combines one representative rule per group of trees [34]. Selecting and compressing the routes discards their structure and the paths that support competing classes, which is precisely the information a contrastive analysis requires. Formal explanations bring logical guarantees instead. Abductive explanations identify a subset-minimal set of feature values that entails the prediction, and can be computed for random forests with Boolean satisfiabil-ity (SAT) solvers [17], majoritary reasons relax minimality in exchange for tractability [35], and sufficient, necessary and complete reasons have been formalised [37]. Their contrastive duals identify a minimal set of features whose change can alter the prediction [36, 17]. All of them take the form of sets of conditions rather than routes and do not single out an executed predicate. Bipolar argumentation frameworks, finally, represent the support and attack relations among the trees of a forest [38], with arguments de-rived from the forest rather than from the predicates it executed. The local DPG belongs to this group, building the graph for a single prediction and equipping it with a class support and the critical predicate. 
+
+2.2. Influence and local surrogates 
+
+Feature attributions assign to each feature a contribution to the output. TreeSHAP computes SHAP values exactly for tree models in polynomial time [9, 1], and feature contributions accumulate the change in class proba-bility along each executed path [39]. Both summarise this information per feature, recording neither the predicates that were executed nor the trees that supported a competing class. Several studies have questioned how far such scores explain a prediction. Large weights need not affect the decision a model makes [19], the importance of a feature differs from its influence rela-tive to a reference value [46], top-ranked features are often neither necessary nor sufficient for a change of outcome [20, 21], and Shapley values can rank 7provably irrelevant features above relevant ones [22, 23]. Our evaluation bor-rows this vocabulary only operationally, asking whether the counterfactual found by feature tweaking crosses a predicate and whether the single-feature crossing of the predicate changes the prediction. Local surrogates describe the model around the sample. LIME fits a sparse linear model [10], Anchors searches for a rule under which the pre-diction remains fixed with high precision [40], and the LOcal Rule-based Explanations (LORE) method learns a decision tree on a synthetic neigh-bourhood, from which it extracts factual and counterfactual rules [14, 41]. Being model-agnostic, they describe how the model behaves near the sam-ple, and their rules are not statements about the predicates the model itself executed. Rule sets produced by such model-agnostic extractors have been shown to differ considerably when compared through quantitative metrics [47]. 
+
+2.3. Counterfactuals and robustness 
+
+Feature tweaking considers every tree path that leads to the desired class, computes the smallest change that satisfies it and retains the cheapest change that alters the prediction of the ensemble [12]. Flexible Optimizable Coun-terfactUal explanations for tree enSembles (FOCUS) pursues the same goal through a differentiable approximation [42], and mixed-integer programming finds provably optimal counterfactuals [13]. The robustness of tree ensembles raises a closely related question, for which Kantchelian et al. [43] compute the nearest instance that receives a different prediction and Chen et al. [44] ver-ify the minimal adversarial perturbation or a guaranteed lower bound on it. These methods search the input space for a small change, which may involve several features, and some offer guarantees on its size. The critical predicate asks a narrower question, restricted to one feature and to the thresholds the trees executed for the sample, and it returns an executed threshold and the trees that share it, without a guarantee of minimality. 
+
+3. Proposed approach 
+
+The approach follows the computation of the ensemble for one sample in five steps, illustrated in Figure 2. First, each tree executes one root-to-leaf rule for the sample (panel a). Second, the support of each class is computed from the original contributions of the trees, so that it reproduces the output of the ensemble (panel b). Third, the rules are gathered into a local graph 8that keeps, on every node and edge, the identity of the trees that executed it (panel c). Fourth, among the executed predicates, we select the one whose threshold, if crossed, is estimated to move the ensemble most strongly toward a chosen class (panel d). Fifth, the feature of that predicate is moved just past its threshold and the whole ensemble is evaluated again, which shows how the prediction responds (panel e). 
+
+3.1. Executed traces and class support 
+
+A tree ensemble predicts by sending the sample through every tree and combining the contributions of the leaves it reaches (the notation is sum-marised in Table A.1, Appendix A). Let C = {c1, . . . , c K } denote the set of classes and F = {T1, . . . , T B } a fitted ensemble of B decision trees over d
+
+numeric features, a sample being x = ( x1, . . . , x d) ∈ Rd. Each internal node compares one feature with a threshold and sends the sample to its left child when xj ≤ θ and to its right child otherwise. In tree Tb the sample follows a sequence of such tests from the root to a leaf. Each test, read together with its outcome, is an executed predicate p = ( j, θ, ◦), with ◦ ∈ {≤ , > }, and the resulting sequence 
+
+πb(x) =  p(b)1 , . . . , p (b) 
+
+> Lb
+
+, o b(x)
+
+is the trace of x in Tb, in which Lb is the length of the path and ob(x) ∈ C 
+
+the class with which the trace is associated. The contribution of the tree may instead be spread over several classes, as for a leaf of a random forest that holds 60% of class c1 and 40% of class c2, or may be a signed score, as in gradient boosting. Class support is therefore computed from these contributions and never by counting the routes that end in each class. Predicates are compared through labels λ(p) = “xj ◦ θ ”, in which the threshold is rounded to six decimal places, and predicates with the same label are treated as one predicate. This grouping is a convention of the representation rather than an identity between thresholds, and every crossing of a predicate uses the exact threshold of the tree concerned. All the ensembles considered here compute their output by adding per-tree contributions vb(x). The resulting state 
+
+z(x) = z0 +
+
+> B
+
+X
+
+> b=1
+
+vb(x) (1) is mapped by a link function g to the class support Sx = g(z(x)) , with P 
+
+> c
+
+Sx(c) = 1 , and Appendix B gives z0, vb, g and ob for each family. The 9(a) Tree ensemble     
+
+> T1T2T3T4T5
+
+each tree executes one root-to-leaf route for x
+
+(b) Executed traces and class support 
+
+π1: x3≤2.4 → x7>−0.6 → x5>0.7 → x1≤3.2 → ■ c1
+
+π2: x3≤2.4 → x7>−0.6 → x5>0.7 → x1>1.8 → ■ c2
+
+π3, π5: x3≤2.4 → x7>−0.6 → x8≤0.2 → ■ c1
+
+π4: x3≤2.4 → x7>−0.6 → x9>1.4 → x2≤0.5 → ■ c2
+
+class support Sx = g z0 + P 
+
+> b
+
+vb(x)
+
+Sx(c1) > S x(c2)
+
+(c) Local DPG xx3 ≤ 2.4
+
+x7 > −0.6
+
+x8 ≤ 0.2
+
+critical predicate 
+
+p∗(c2)
+
+x5 > 0.7 x9 > 1.4
+
+x1 ≤ 3.2 x1 > 1.8 x2 ≤ 0.5
+
+c1 c2Sx(c1) Sx(c2)    
+
+> T1–5
+> T1–5
+> T3, T 5
+> T1, T 2
+> T4
+> T1T2T4
+> T3, T 5
+> T1T2T4
+
+every route is an ex-ecuted rule and ev-ery edge records the trees that executed it; class support comes from the tree contribu-tions, not from count-ing routes 
+
+(d) Ranking toward a target class c
+
+x8 ≤ 0.2 T3, T 5
+
+x5 > 0.7 T1
+
+x1 ≤ 3.2 T1
+
+x3 ≤ 2.4 T1, T 3, T 5
+
+p∗(c)          
+
+> gains add up over the trees that share a predicate, and crossing x8≤0.2sends T3and T5(now at c1)to branches whose leaves support c
+
+(e) Threshold crossing in the whole model 
+
+x8 = 0 .1 → 0.2+
+
+> threshold crossing
+
+re-evaluate all trees      
+
+> routes testing x8in (0 .1,0.2] change
+
+∆P (c) = Sx′ (c) − Sx(c) 
+
+> flip if the model now predicts c
+
+With c = c2, the top com-petitor, a flip shows where the prediction is contested. With c = y, the true class, it tests whether a wrong predic-tion can be recovered. The explanation names the threshold ( x8 = 0 .2) and the trees involved ( T3, T5). 
+
+Figure 2: Overview of the approach for a sample x with predicted class ˆy = c1 and top competitor c† = c2. (a) Each tree executes one rule. (b) Executed traces and class support computed from the tree contributions. (c) Local DPG, whose routes are the executed traces. (d) Critical predicate toward a target class c, highlighted in every panel. (e) Single-feature threshold crossing evaluated in the whole model. 
+
+10 predicted class is ˆy(x) = arg max c Sx(c), and we call c†(x) = arg max c̸=ˆ y Sx(c)
+
+the top competitor , breaking ties by class order. When the true class y of a sample is known, the prediction is wrong if ˆy(x)̸ = y, and in multiclass problems y need not coincide with c†(x).Statistics of the original DPG [18] summarise how the training data tra-verse the graph, and a ranking of classes obtained from them need not agree with the model. Defining the support through Equation (1) avoids this mis-match. 
+
+Proposition 1 (Output fidelity) . For every sample x, arg max c Sx(c) is the class predicted by the model, and the contributions of the individual traces add up to the model’s state, z0 + P 
+
+> b
+
+vb(x) = z(x).Proof. For each family, vb is precisely the quantity that the model sums and g is the model’s own link function (Appendix B). Hence Sx equals the model’s predicted probabilities or, in the case of AdaBoost, a vote share whose maximiser is the model’s prediction. The proposition concerns the numbers attached to the explanation and not the topology of the graph, and it holds up to floating-point rounding. Numerically, the explained class matched the prediction in 342,040 of 342,040 cases, with a largest absolute residual of 1.4 × 10 −14 .
+
+3.2. Local DPG 
+
+Each trace πb(x) defines a decision rule whose antecedent is the conjunc-tion of its predicates and whose consequent is its outcome. The local DPG 
+
+Gx represents the rules executed for x as a single directed acyclic graph, with a source node, predicate nodes and one sink node for each class. Each trace induces a path from the source through its predicates to the sink of its out-come, and every node and edge is labelled with the set of trees whose traces traverse it. Merging predicates on their labels alone could create source-to-sink paths that no tree executed, by joining the beginning of one trace to the end of another. A predicate node is therefore identified by its label together with the labels that immediately precede it on the trace, and the number of preceding labels is the smallest for which every source-to-sink path, or 
+
+route , coincides with the label sequence of an executed trace. This condition is checked exactly on the traces of the sample, and keeping the whole prefix of every trace always satisfies it. Unlike the original DPG, which is induced from the training data, Gx is induced from the traces of x alone, so that its 11 routes enumerate the decision rules the model applied to x and its tree sets identify the trees that applied them (Figure 2c). 
+
+3.3. Critical predicate 
+
+Explanations are often sought in contrastive form, asking why one out-come occurred rather than another [24]. Intuitively, the critical predicate is the executed predicate whose threshold, if crossed, is estimated to move the ensemble most strongly toward a chosen target class c.To cross an executed predicate p = ( j, θ, ◦) is to move xj to the other side of θ. The crossing value ˜xj is the value closest to θ on that side, in the precision in which the trees compare features, and the slack of the predicate, the margin by which the sample satisfies its inequality, is |xj − θ|. Crossing 
+
+p in tree Tb only, with all other trees left unchanged, replaces vb(x) with the contribution vb(x(b,ℓ )) of the leaf that Tb reaches once xj is set to the crossing value of its own threshold, where ℓ = λ(p).
+
+Definition 1 (Pivot predicate and critical predicate) . For a label ℓ, let Bℓ be the set of trees whose traces execute a predicate with label ℓ. The estimated gain of ℓ toward a target class c is 
+
+∆ℓ(c) = X
+
+> b∈B ℓ
+
+h
+
+g z(x) − vb(x) + vb(x(b,ℓ )) 
+
+> c
+
+− Sx(c)
+
+i
+
+. (2) 
+
+A label with ∆ℓ(c) > 0 is a pivot predicate toward c, and the pivot with the largest gain is the critical predicate p∗(c), with ties broken first by smaller slack and then by label. If no label has a positive gain, no critical predicate is returned. We write p∗ for p∗(c†).
+
+The gain in Equation (2) is a first-order estimate, in the sense that it adds the changes obtained by crossing the predicate in each tree separately; it is not a derivative, and it ignores the interaction between trees that are crossed together. It is computed directly from the stored traces and requires no search over the input space, while the graph is the representation in which the selected predicate, its trees and the competing routes can be inspected. A critical predicate toward the top competitor existed in 97.7% to 100.0% of the samples, depending on the family. Because the gain sums over the trees that execute the same predicate, the critical predicate tends to be shared by groups of trees, and it usually lies on routes that reach the predicted class, since only the trees that do not yet support the target can move toward it, 12 as in Figure 2, where x8 ≤ 0.2 redirects T3 and T5. The local DPG also lists the pivot predicates ranked by their gain, and the compact contrastive view 
+
+retains the shortest prefix of this ranking that accounts for 80% of the total positive gain. 
+
+3.4. Using the critical predicate 
+
+The critical predicate is used by intervening on the whole model. Given a target class c, the threshold crossing of p∗(c) changes a single feature of the sample, setting xj to the crossing value of the threshold nearest to the sample among the trees that share the label, and evaluates every tree again on the crossed sample x′. We record the change in the support of the target class, 
+
+∆P (c) = Sx′ (c) − Sx(c), and whether the predicted class changes, which we call a flip . This whole-model intervention changes one feature, not one node of the ensemble, so any tree whose route tests xj between the old and the new value also changes its route, whether or not it executed the predicate. It plays no role in the selection of p∗(c), and throughout the paper crossing a predicate refers to this intervention. The target determines the question that the intervention answers. With the top competitor, c = c†, the critical predicate indicates where the predic-tion is estimated to be most contested. When the true class y of a wrongly predicted sample is known, the target c = y asks whether a single threshold crossing turns the prediction into the true class, and we say that the predi-cate recovers the true class when the model then predicts y. The two targets differ in multiclass problems whenever the true class is not the strongest competitor. 
+
+3.5. Algorithm and complexity 
+
+Algorithm 1 summarises the construction. With L = P 
+
+> b
+
+Lb the total length of the executed paths and D the maximum depth of the trees, ex-tracting the traces takes O(L) time in addition to one evaluation of the ensemble, and estimating the gains takes O(LD ) time, since each executed predicate re-evaluates the single tree that executed it. Choosing the context of the predicate nodes depends on how many lengths are checked, for which we state no bound, and the measured runtimes of Section 5.4 include this step. The graph has at most L + K + 1 nodes and L + B edges. 
+
+4. Experimental design 
+
+The experiments address four research questions: 13 Algorithm 1 Local DPG and contrastive view for a sample x.
+
+Require: fitted ensemble F, sample x, target class c (by default c†) 
+
+> 1:
+
+for b = 1 , . . . , B do  
+
+> 2:
+
+πb ← executed trace of x in Tb ▷ tree index stored  
+
+> 3:
+
+vb ← contribution of Tb at x 
+
+> 4:
+
+end for  
+
+> 5:
+
+z ← z0 + P 
+
+> b
+
+vb; Sx ← g(z); ˆy ← arg max Sx; c† ← arg max c̸=ˆ y Sx 
+
+> 6:
+
+Gx ← merge of {πb}, each predicate with the shortest preceding context for which every route is a trace  
+
+> 7:
+
+annotate each node and edge of Gx with its trees  
+
+> 8:
+
+for each executed predicate (b, p ) do  
+
+> 9:
+
+˜x ← x with xj set to the crossing value of p in Tb 
+
+> 10:
+
+∆λ(p)(c) ← ∆λ(p)(c) + g(z − vb + vb(˜ x)) c − Sx(c) ▷ Eq. (2)  
+
+> 11:
+
+end for  
+
+> 12:
+
+p∗(c) ← arg max ℓ ∆ℓ(c) if max ℓ ∆ℓ(c) > 0 ▷ ties: slack, then label  
+
+> 13:
+
+return Gx, Sx, c†, ranked pivots, p∗(c)
+
+RQ1 (critical predicate). Compared with predicates selected at random, by a structural criterion, or from the feature ranked first by an attribu-tion or counterfactual explainer, how does the critical predicate perform on measures that do not involve its selection, and does its estimated gain carry over to the whole model? 
+
+RQ2 (wrong predictions). Directed toward the true class of a wrong pre-diction, how does the critical predicate perform on measures that do not involve its selection, how often does crossing it recover that class, and does it locate a fault planted in the training data? 
+
+RQ3 (repair). Do the predicates identified on wrong predictions help training-free edits of the model reduce its error on unseen data? 
+
+RQ4 (cost and size). What are the runtime and the size of the local DPG and of its compact contrastive view? 
+
+4.1. Datasets and models 
+
+We use 16 public numeric classification datasets, obtained from OpenML [48] and scikit-learn and most of them originating in the UCI repository [49], with 4 to 617 features and 2 to 26 classes (Table S15 of 14 the supplementary material). Each dataset is divided once, by stratified sampling, into a held-out test set of 20% of the samples and a remainder, which is split in the same way into a training core and a validation set in the proportion 80:20. We study four ensemble families of 100 estimators, random forests (RF), bagging of decision trees (Bagging), AdaBoost with Stagewise Additive Modeling using a Multi-class Exponential loss, SAMME (AdaBoost) and gradient boosting (GBM). For each combination of dataset, family and repetition, a single configuration is chosen on validation accuracy alone, among maximum depths of 4, 8 and unlimited for RF and Bagging, 1, 2 and 3 for AdaBoost, and 2, 3 and 5 for GBM with a learning rate of 
+
+0.1, and refitted on the training and validation data. This refitted model is the one explained by every method and control, no explanation metric enters the selection, the local DPG has no hyper-parameter to tune, and the 10 repetitions differ in the random initialisation of the models and of the random controls. The code, the fixed splits and the per-sample results are archived on Zenodo [50]. 
+
+4.2. Explanation methods and controls 
+
+The baselines are TreeSHAP [1] in its path-dependent form, LIME [10], Anchors [40], LORE [14, 41] and feature tweaking [12], which returns the cheapest change of the sample, in standardised Euclidean distance, that sat-isfies the path to a leaf of the target class and changes the prediction of the whole model. Because of their cost, Anchors and LORE explain the first 50 test samples in the first three repetitions, and Anchors is reported for the 14 datasets within the memory limit, whereas all other methods explain every test sample in all 10 repetitions (Section S1 of the supplementary material). Each control selects a single executed predicate of the sample, which is then crossed exactly as the critical predicate is (Figure 3). Three controls are structural, namely a random executed predicate, the predicate with the smallest slack ( nearest ) and the predicate executed by the largest number of trees ( frequent ). The other five are guided by an explainer. Explainers score features or propose input changes but do not return a predicate, so each control takes the feature that its explainer ranks first (Section S1 of the sup-plementary material) and selects an executed predicate on that feature. The predicate nearest to the sample gives the TreeSHAP-guided (LIME-guided, and so on) predicate, and the predicate with the largest estimated gain gives its gain-guided counterpart, which applies the rule of the critical predicate to the feature indicated by the explainer. The comparison thus concerns the 15 (a) Predicates on the axis of each feature                 
+
+> x8
+> 0.2(T3, T 5)
+> x5
+> 0.7(T1, T 2)1.6(T6)
+> x1
+> 1.82.55 (T7)3.2(T1)
+> ♦value of the sample dark ticks: executed predicates light ticks: thresholds of other trees
+> (b) Predicate selected by each criterion
+> Critical : largest estimated gain,
+> x8≤0.2, shared by T3and T5
+> TreeSHAP-guided : feature ranked first (x5), predicate nearest to the sample
+> Nearest : smallest slack among all executed predicates ( x1≤2.55 )
+> Random : any executed predicate, often far from the sample, past other thresholds
+
+Figure 3: Predicate selected for crossing by the critical-predicate criterion and by three controls, on a schematic sample. (a) Feature axes with the value of the sample, the executed predicates (dark) and the thresholds of other trees (light). (b) Selection rule of each criterion. 
+
+predicates obtained in this way rather than the explainers themselves, and each one is restricted to the samples on which the control is defined. 
+
+4.3. Metrics 
+
+Agreement with the model output is a necessary but weak criterion, since an explanation may match a prediction while misrepresenting how it was reached [51, 52, 47, 2], and explainers frequently disagree for the same in-put [53]. Fidelity is therefore guaranteed by construction, and the critical predicate is assessed first on two measures that do not involve its selection. The separation contrast is, among the 10 nearest training points whose pre-diction differs from that of the sample and the 10 nearest whose prediction is the same, the proportion of the former minus the proportion of the latter that lie on the other side of the threshold. The agreement with the counterfactual records whether the counterfactual found by feature tweaking, the cheapest among the candidates it examines, crosses the threshold. These measures and the flip rate are operational counterparts of the necessity and sufficiency discussed in Section 2 [20, 21], not formal tests of them. For RQ1, with the top competitor as target, we then measure the change 
+
+∆P (c†) and the flip rate under the whole-model intervention, which test whether the estimated gain carries over to the model, together with the distance moved by the feature in standard deviations of the training data, 16 the number of trees that share the predicate, and whether the crossed sample is atypical , that is, whether its distance to the nearest training point exceeds the 95th percentile of that distance among training points. As a reference, an oracle selects the executed predicate with the largest change in the whole model. For RQ2, the target of every wrong prediction is its true class y, and the TreeSHAP control uses the largest absolute entry of the contrastive vector 
+
+ϕ(ˆ y) − ϕ(y) (for binary gradient boosting, the largest |ϕj |). We measure the 
+
+true-class recovery , the proportion of wrong predictions whose true class is recovered, and the two measures above, with the separation contrast com-puted among the training points labelled with the true and with the predicted class. A fault planted in the data provides a ground truth that real datasets lack, so we also generate ten standard normal features whose first four deter-mine the class through a noisy linear function, and plant in the training and validation labels either a faulty rule, with labels flipped where x4 > 0.3 and 
+
+x5 > 0.3, or a region of label noise, with labels flipped with probability 0.8 where x4 > 0.8. Test labels are clean, so wrong test predictions inside the region are largely caused by the fault. Over 10 generated datasets per fault and family, we record how often a control selects a feature of the fault and how often its threshold also lies within 0.25 of the threshold of the fault. For RQ3, the validation errors of a model fitted on the training core are treated as errors observed in use. Each error nominates one executed predicate, chosen by the critical predicate, by the votes of the trees that predicted the wrong class ( vote ), by contrastive TreeSHAP or at random. The most nominated predicates are edited without retraining, by neutralising the leaves, trees or rules that depend on them or by moving their threshold, and an edit is kept only if it reduces the errors on a held-out half of the validation set (Section S2 of the supplementary material). The measure is the relative change of the test error. For RQ4, we measure the time per explanation and its size in its own units, and a scaling study relates the local DPG to the number of trees (Section S3 of the supplementary material). 
+
+4.4. Statistical analysis 
+
+Per-sample values are averaged within each run, defined by dataset, fam-ily and repetition, and then over repetitions, which yields one value per dataset and family; all tests operate on these dataset-level values. The crit-ical predicate is compared with each control by the Wilcoxon signed-rank test, with Holm’s correction [54] applied within each family and metric. The 17 Table 2: RQ1, measures that do not involve the selection. Means over datasets. 
+
+(a) Separation contrast 
+
+Family Critical Random Nearest Frequent TreeSHAP Tweak RF 0.336 0.141 ∗ 0.038 ∗ 0.290 0.344 0.272 ∗
+
+Bagging 0.262 0.157 ∗ 0.144 ∗ 0.253 0.356 0.307 GBM 0.305 0.105 ∗ 0.071 ∗ 0.209 0.358 0.283 AdaBoost 0.322 0.110 ∗ 0.082 ∗ 0.153 ∗ 0.355 0.286 
+
+(b) Proportion of samples whose counterfactual found by feature tweaking crosses the threshold 
+
+Family Critical Random Nearest Frequent TreeSHAP RF 0.396 0.079 ∗ 0.135 ∗ 0.278 ∗ 0.408 
+
+Bagging 0.397 0.079 ∗ 0.183 ∗ 0.313 ∗ 0.406 
+
+GBM 0.305 0.056 ∗ 0.136 ∗ 0.170 ∗ 0.326 
+
+AdaBoost 0.353 0.060 ∗ 0.150 ∗ 0.173 ∗ 0.320      
+
+> Bold: best value per family. ∗Significant difference from the critical predicate (Wilcoxon test over datasets, Holm-corrected p < 0.05 ). Tweak is absent from (b) because its pred-icate derives from the same counterfactual. LIME, Anchors and LORE are reported in Tables S6 to S8 of the supplementary material.
+
+controls that are defined on every sample are, in addition, ranked jointly by the Friedman test followed by the Nemenyi critical difference [55], using only the samples on which all of them are defined. 
+
+5. Results 
+
+5.1. RQ1, critical predicate 
+
+The critical predicate is selected from its estimated gain alone, without any external explainer, and two measures that do not involve the gain show that this selection identifies thresholds that separate neighbouring predic-tions. It separates differently predicted neighbours better than the random and nearest controls in every family, and the counterfactual found by fea-ture tweaking crosses it in 31% to 40% of the samples, against 6% to 8% for a random predicate (Table 2). On both measures it stands at the level of the TreeSHAP-guided predicate, without requiring an attribution to be computed. 18 Table 3: RQ1, proportion of samples whose prediction changes after crossing the selected predicate. Means over datasets, each control on the samples on which it is defined. 
+
+Family Critical Random Nearest Frequent TreeSHAP Tweak RF 0.181 0.052 ∗ 0.007 ∗ 0.115 ∗ 0.010 ∗ 0.037 ∗
+
+Bagging 0.428 0.095 ∗ 0.011 ∗ 0.356 ∗ 0.022 ∗ 0.036 ∗
+
+GBM 0.424 0.101 ∗ 0.018 ∗ 0.225 ∗ 0.059 ∗ 0.120 ∗
+
+AdaBoost 0.411 0.129 ∗ 0.052 ∗ 0.267 ∗ 0.106 ∗ 0.250 ∗     
+
+> Bold: best value per family. ∗Significant difference from the critical predicate (Wilcoxon test over datasets, Holm-corrected p < 0.05 ). The change in support and the other ex-plainers are reported in Tables S6 to S8 of the supplementary material.
+
+The estimated gain also carries over to the whole model, where crossing the critical predicate changes the prediction more often than crossing any of these controls (Table 3), on at least 12 of the compared datasets in each family (Holm-corrected p ≤ 0.039 ), and it ranks first on the change in com-petitor support (Figure 4). Since the selection estimates this quantity, the comparison shows above all how well the estimate transfers to the model. The comparison is more demanding when each explainer also receives the rule of the critical predicate, as in the gain-guided controls (Table 4, and Sec-tion S8 of the supplementary material). The critical predicate, which searches all the executed predicates instead of those of a single feature, changes the prediction in 18% to 44% of the samples, significantly more often than the gain-guided controls of TreeSHAP (15% to 37%) and LIME (12% to 32%) in 3 of the 4 families each. The control guided by feature tweaking, which requires a counterfactual search beforehand, reaches a comparable effect and surpasses it for AdaBoost, and the controls guided by TreeSHAP and feature tweaking separate neighbours more strongly in some families. The value of selecting by estimated gain becomes clearer against the or-acle. The estimate agrees moderately with the real change (mean Spearman correlation of 0.52 to 0.68 per sample), and the oracle changes more pre-dictions (46% to 75%), but it does so through distant thresholds executed by few trees, moving the feature by 1.62 to 2.13 standard deviations with 2 to 7 trees, against 0.88 to 1.34 with 8 to 27 trees for the critical predicate. Its separation contrast falls from 0.26–0.34 to 0.13–0.18, and its agreement with the counterfactual from 31%–40% to 8%–18%. Selecting by estimated gain therefore yields predicates that many trees share and that still separate neighbouring predictions. 19 123456CD 
+
+> Critical (1.0)
+> Frequent (2.3) Random (3.2) Nearest (5.8) TreeSHAP (4.6) Tweak (4.0)
+> RF
+> 123456CD
+> Critical (1.0)
+> Frequent (2.3) Random (3.1) Nearest (5.9) TreeSHAP (4.8) Tweak (3.9)
+> Bagging
+> 123456CD
+> Critical (1.0)
+> Frequent (3.2) Tweak (3.2) Nearest (5.8) TreeSHAP (4.1) Random (3.8)
+> GBM
+> 123456CD
+> Critical (1.1)
+> Tweak (2.6) TreeSHAP (3.2) Nearest (4.8) Frequent (4.8) Random (4.5)
+> AdaBoost
+
+Figure 4: RQ1, critical difference diagrams [55] of the controls defined on every sample, for the change in competitor support. Controls joined by a bar do not differ significantly (Nemenyi, α = 0 .05 ). 
+
+A crossing is still a sizeable change of one feature, comparable to the Euclidean cost of the counterfactual found by feature tweaking (0.76 to 1.01), which may spread over several features (Table S12 of the supplementary material). Neither size nor sharing alone explains the effect, since a random predicate moves the feature about as far with a much smaller effect, and the frequent control is shared by more trees and changes fewer predictions. Acrossing raises the share of atypical samples from 5% to 15%–22%, about the same as the counterfactuals (17% to 18%). Feature tweaking answers a different question, the cheapest change that reaches the competitor, and it succeeds more often (73% to 92%, against 18% to 41%) at a cost 2.2 to 2.8 times lower when both succeed (Table S5 of the supplementary material), so the critical predicate should not be presented as a minimal counterfactual. Taken together, the critical predicate exceeds the random and nearest controls on the measures that do not involve its selection, its estimated gain carries over to the whole model, and it changes the prediction more often than the gain-guided controls of TreeSHAP and LIME in most families. 20 Table 4: Gain-guided controls, which apply the rule of the critical predicate to the feature ranked first by each explainer. Means over datasets. 
+
+(a) Proportion of samples whose prediction changes 
+
+Family Critical TreeSHAP LIME Tweak RF 0.184 0.147 ∗ 0.121 ∗ 0.189 
+
+Bagging 0.436 0.295 ∗ 0.247 ∗ 0.356 ∗
+
+GBM 0.424 0.327 ∗ 0.285 ∗ 0.437 
+
+AdaBoost 0.411 0.372 0.316 0.602 ∗
+
+(b) Proportion of wrong predictions whose true class is recovered 
+
+Family Critical TreeSHAP LIME Tweak RF 0.456 0.293 ∗ – 0.388 ∗
+
+Bagging 0.677 0.498 ∗ – 0.561 ∗
+
+GBM 0.692 0.501 ∗ – 0.647 AdaBoost 0.677 0.443 ∗ – 0.777 ∗
+
+(c) Separation contrast 
+
+Family Critical TreeSHAP LIME Tweak RF 0.336 0.420 ∗ 0.361 0.425 ∗
+
+Bagging 0.262 0.363 ∗ 0.284 0.343 ∗
+
+GBM 0.305 0.399 ∗ 0.331 0.351 AdaBoost 0.322 0.388 0.317 0.342 
+
+(d) Distance moved by the feature (standard deviations) 
+
+Family Critical TreeSHAP LIME Tweak RF 0.94 0.79 0.83 0.66 ∗
+
+Bagging 1.16 0.82 ∗ 1.04 0.70 ∗
+
+GBM 1.34 1.07 ∗ 1.41 0.88 ∗
+
+AdaBoost 0.88 0.93 0.96 0.69 ∗
+
+Bold: best value per family. ∗ Significant difference from the critical predicate (Wilcoxon test over datasets, Holm-corrected p < 0.05 ). LIME is evaluated toward the top competitor only. 
+
+21 5.2. RQ2, wrong predictions 
+
+Crossing the critical predicate recovers the true class in 46% to 69% of the wrong predictions, over 49,835 of them in binary and multiclass problems alike, significantly more than the gain-guided control of contrastive Tree-SHAP (29% to 50%) in all 4 families (Table 4). The control guided by feature tweaking, which requires a counterfactual search, recovers fewer in RF and Bagging, a similar share in GBM and more in AdaBoost. The gap to the controls that cross the nearest threshold is far wider (Table S16 of the supplementary material), and targeting the true class matters in mul-ticlass problems, where it is not the top competitor in 18% to 31% of the wrong predictions and raises recovery by 6 to 13 percentage points. As in RQ1, the selection estimates the measured quantity, so recovery shows what a single crossing can achieve. On the measures that do not involve the gain (Table S13 of the supplementary material), the separation contrast of 0.25 to 0.33 is significantly above the random and frequent controls in every fam-ily and exceeds the predicates guided by contrastive TreeSHAP and feature tweaking in 4 of the 8 comparisons, so the threshold tends to separate the sample from nearby points of its true class, although this does not establish that it caused the error. Table 5 shows 10 wrong predictions drawn at random from one model. The critical predicate moves the model toward the correct class in every case, whereas the predicate guided by contrastive TreeSHAP hardly changes it at the nearest threshold, even in the 5 cases where both test the same feature. Under the rule of the critical predicate, that control selects the same predicate in 5 of the cases and a stronger one in 3. Over all wrong predictions, the critical predicate has the larger effect in 92% to 97% of the cases against the nearest threshold and in 49% to 70% against the gain-guided control, depending on the family. The planted faults offer a more direct view, because the origin of each error is known (Table 6). On the wrong predictions inside the faulty region, the critical predicate tests a feature of the fault in 54% to 73% of the cases, against 11% to 29% for a random predicate, and it finds the threshold of the fault in 46% to 71%, against 6% to 21% for a random predicate and 5% to 30% for the predicate guided by contrastive TreeSHAP. The feature ranked first by contrastive TreeSHAP indicates the fault still more often (68% to 93%), and combined with the rule of the critical predicate it locates the threshold in 59% to 90%, which suggests that the two sources of information work well together. 22 Table 5: RQ2, ten wrong predictions of the random forest on diabetes (first repetition), drawn at random, with their standardised feature values and the change ∆P (y) in the support of the true class when each predicate is crossed. 
+
+Feature values of the sample Critical predicate TreeSHAP, nearest TreeSHAP, gain Sample preg plas pres skin insu mass pedi age Predicate ∆P (y) Predicate ∆P (y) Predicate ∆P (y)
+
+0 0.96 1.21 -0.30 -1.31 -0.73 -0.58 -0.56 0.56 preg > 0.81 +0.071 plas > 1.19 +0.009 plas > 1.07 +0.112 3 0.96 -0.22 -0.30 -1.31 -0.73 -0.58 0.77 0.05 plas ≤ 1.07 +0.277 mass ≤ -0.58 +0.007 mass ≤ -0.40 +0.074 6 1.26 -0.50 1.66 0.96 -0.73 1.44 -0.72 0.98 plas ≤ 0.21 +0.080 plas ≤ -0.46 +0.002 plas ≤ 0.21 +0.080 16 1.87 1.30 0.79 -1.31 -0.73 -0.54 -0.90 1.75 preg > 0.81 +0.097 plas > 1.29 +0.001 plas > 1.07 +0.112 22 0.96 -0.44 0.25 -1.31 -0.73 -0.30 -0.68 -0.20 plas ≤ 1.07 +0.269 plas ≤ -0.43 +0.004 plas ≤ 1.07 +0.269 33 -0.85 1.02 0.68 1.34 3.77 1.10 0.64 -0.88 plas > 0.21 +0.142 plas ≤ 1.03 -0.025 plas > 0.21 +0.142 49 0.05 0.35 -3.78 -1.31 -0.73 0.12 -0.53 -0.88 age ≤ -0.24 +0.102 age > -0.92 +0.001 age ≤ -0.24 +0.102 75 0.66 -0.06 -1.06 0.08 0.90 -0.62 2.55 -0.03 preg ≤ 0.81 +0.037 mass ≤ -0.60 +0.010 mass ≤ -0.40 +0.121 96 -0.85 0.57 -0.40 1.28 3.73 1.11 0.18 -1.05 plas > 0.21 +0.151 insu > 3.47 +0.009 insu > 3.23 +0.030 120 -1.15 1.40 1.12 0.77 5.59 2.59 -0.15 -0.88 plas > 0.21 +0.235 plas ≤ 1.41 -0.017 plas > 0.21 +0.235 
+
+Bold: feature of the critical predicate. Italic: feature ranked first by contrastive TreeSHAP. Nearest and gain: threshold on that feature nearest to the sample, and with the largest estimated gain. 
+
+Taken together, a single crossing recovers the true class in about half to two thirds of the wrong predictions, more often than the gain-guided control of TreeSHAP, and on planted faults the critical predicate points to the feature and the threshold of the fault far more often than chance. 23 Table 6: RQ2, wrong predictions inside the planted faulty region for which the selected predicate points to the fault. Means over ten generated datasets. 
+
+(a) Tests a feature of the fault 
+
+Fault Family Critical Random Nearest Frequent TreeSHAP TreeSHAP gain Tweak Tweak gain Rule RF 0.591 0.249 ∗ 0.210 ∗ 0.161 ∗ 0.679 0.679 0.586 0.586 Bagging 0.651 0.260 ∗ 0.276 ∗ 0.537 0.877 ∗ 0.877 ∗ 0.653 0.653 GBM 0.661 0.294 ∗ 0.276 ∗ 0.118 ∗ 0.807 ∗ 0.807 ∗ 0.662 0.662 AdaBoost 0.715 0.242 ∗ 0.283 ∗ 0.018 ∗ 0.716 0.716 0.631 0.631 Noise RF 0.685 0.111 ∗ 0.149 ∗ 0.461 ∗ 0.850 ∗ 0.850 ∗ 0.520 ∗ 0.520 ∗
+
+Bagging 0.729 0.125 ∗ 0.171 ∗ 0.783 0.928 ∗ 0.928 ∗ 0.553 ∗ 0.553 ∗
+
+GBM 0.687 0.163 ∗ 0.211 ∗ 0.630 0.847 0.847 0.570 0.570 AdaBoost 0.535 0.152 ∗ 0.201 ∗ 0.208 0.764 ∗ 0.764 ∗ 0.501 0.501 
+
+(b) Also lies within 0.25 of the threshold of the fault 
+
+Fault Family Critical Random Nearest Frequent TreeSHAP TreeSHAP gain Tweak Tweak gain Rule RF 0.562 0.136 ∗ 0.088 ∗ 0.158 ∗ 0.055 ∗ 0.595 0.252 ∗ 0.543 Bagging 0.640 0.208 ∗ 0.164 ∗ 0.535 0.151 ∗ 0.823 ∗ 0.358 ∗ 0.624 GBM 0.615 0.187 ∗ 0.142 ∗ 0.098 ∗ 0.112 ∗ 0.729 ∗ 0.330 ∗ 0.596 AdaBoost 0.660 0.117 ∗ 0.140 ∗ 0.004 ∗ 0.102 ∗ 0.626 0.283 ∗ 0.575 Noise RF 0.673 0.064 ∗ 0.075 ∗ 0.459 ∗ 0.219 ∗ 0.814 ∗ 0.222 ∗ 0.501 ∗
+
+Bagging 0.711 0.079 ∗ 0.102 ∗ 0.781 ∗ 0.280 ∗ 0.899 ∗ 0.257 ∗ 0.541 ∗
+
+GBM 0.637 0.106 ∗ 0.105 ∗ 0.630 0.296 ∗ 0.765 0.268 ∗ 0.510 AdaBoost 0.463 0.058 ∗ 0.095 ∗ 0.009 ∗ 0.193 ∗ 0.693 ∗ 0.206 ∗ 0.454 
+
+TreeSHAP and Tweak: nearest threshold on the feature ranked first. Gain: largest esti-mated gain on that feature. Bold: best value per row. ∗ Significant difference from the critical predicate (Wilcoxon test over generated datasets, Holm-corrected p < 0.05 ). 
+
+5.3. RQ3, repair 
+
+The predicates identified on wrong predictions did not help training-free edits reduce the error on unseen data. Few edits passed the held-out test (0.1 to 0.8 per repetition for the critical-predicate localisation), their effect on the test error lies between -0.6% and +0.5%, and none of the 42 comparisons with the vote, TreeSHAP and random localisations is significant after Holm’s correction, whereas refitting the model on the training and validation data reduces the test error by 11% to 15% for RF, Bagging and GBM, although it increases it by 8.5% for AdaBoost (Section S2 of the supplementary material). A likely reason, which we did not test, is that a small number of validation errors provides too little evidence to revise a predicate shared by many trees without disturbing the samples those trees predict correctly. 24 5.4. RQ4, cost and size 
+
+Building the local DPG with its contrastive view takes 87 to 461 ms per sample (Figure 5), of the same order as TreeSHAP and LIME for RF and Bagging and up to 11 times slower than TreeSHAP for GBM and AdaBoost, whereas Anchors and LORE are 35 to 504 times slower than the local DPG, and it grows roughly linearly with the number of trees (Table S4 of the supplementary material). The graph itself is large, with 173 to 885 nodes on average, and its compact contrastive view still needs 26 to 123 predicates to retain 80% of the positive estimated gain, which indicates that the evidence for a competing class is spread over many predicates of small gain. The local DPG is therefore inexpensive to build but not compact. 10 0 10 1 10 2     
+
+> Native size of the explanation (in each method's own unit, log scale)
+> 10 1
+> 10 2
+> 10 3
+> 10 4
+> 10 5
+> Runtime per explanation (ms, log scale)
+> Local DPG
+> TreeSHAP
+> LIME
+> Anchors
+> LORE
+> Feature tweaking
+> Local DPG TreeSHAP LIME Anchors LORE Feature tweaking
+
+Figure 5: RQ4, runtime against the size of the explanation in each method’s own unit, one point per family, on the samples explained by all methods. For the local DPG, the size is the number of predicates in its compact contrastive view. Sizes are not comparable across methods (values in Table S9 of the supplementary material). 
+
+6. Discussion 
+
+The critical predicate exceeds the random and nearest controls on mea-sures that do not involve its selection, and its estimated gain carries over to the whole model (RQ1). A single crossing recovers the true class of a wrong prediction in 46% to 69% of the cases (RQ2). The predicates it identifies did not help training-free edits reduce the error on unseen data (RQ3), and the local DPG is built in 87 to 461 ms per sample but is not compact (RQ4). 25 6.1. What the results show 
+
+Frameworks for the qualities of a good explanation include the twelve properties of Nauta et al. [51] and the notions reviewed by Vilone and Longo [2], within the agenda set out by Longo et al. [3]. Along them, the strengths of the local DPG follow from its construction, since every route is an executed decision rule and the class support is the model’s own output (Table 7). 
+
+Table 7: The local DPG assessed along the properties of Nauta et al. [51] and the related notions of Vilone and Longo [2]. Property Notion Met Evidence Correctness faithfulness the class support reproduced every explained prediction (Proposition 1) and the routes are executed traces (Section 3.2) Completeness transparency all executed predicates, the trees that executed them and the routes to competing classes, by construction (Section 3.2) Consistency – deterministic for a fixed model and sample (Section 3.3), but agreement across models or similar samples was not evaluated Contrastivity – explanation toward a chosen target class (Sections 5.1 and 5.2) Covariate complexity intelligibility predicates are thresholds on the original features, but their intelligibility to users was not evaluated Compactness – 173 to 885 nodes, and 26 to 123 predicates in the compact contrastive view (Section 5.4) Composition explicitness graph and contrastive summary, whose presentation to users was not studied Confidence – not evaluated, since the class support describes the model output and not the reliability of the explanation Controllability interactivity the user chooses the target class, without further interaction Property: Nauta et al. [51]. Notion: closest notion of Vilone and Longo [2]; a dash marks properties without a direct counterpart. Met: shown by construction or by the results, partly supported, not met or not evaluated. 
+
+A predicate chosen only by its estimated gain exceeds random and nearest-threshold predicates on measures that do not involve the gain, without any search over the input space, and the oracle shows that a direct search for the largest effect would lead to distant thresholds executed by 26 few trees. Knowing the most influential feature does not reveal which of its thresholds matters, whereas the estimated gain accumulates over all the trees that executed a predicate, which is consistent with the observation that influence and decision relevance are different notions [19, 20]. Directed toward the true class, the critical predicate names the threshold and the trees at which a wrong prediction can be changed, in binary and multiclass problems alike, which is a natural input to explanatory debugging, in which users correct a model through its explanations [8, 56]. Table 8 summarises what the critical predicate adds for a single prediction, whether correct or wrong, and where each element is supported in this paper.         
+
+> Table 8: What the critical predicate adds for one prediction. Question about the prediction What is returned Support Where is the prediction contested? the critical predicate toward the top competitor, p∗(c†), the change ∆P(c†)
+> and whether crossing it changes the prediction RQ1, Table 3 Can a wrong prediction be changed to the true class? the critical predicate toward the true class, p∗(y), whose crossing recovers it in 46% to 69% of the cases RQ2, Tables 4 and 5 On which feature, threshold and trees? the feature xj, the threshold θ, the value of the sample, its slack and the set of trees that share the predicate Section 3.3, Table 5 Which change of the input would alter it? a single threshold crossing, which complements the multi-feature change of a counterfactual and is crossed by the counterfactual found by feature tweaking in 31% to 40% of the cases RQ1, Table 2
+
+6.2. What the results do not show 
+
+The critical predicate is not a minimal counterfactual, its crossing is a sizeable change of one feature, and its effect on the prediction is the quantity that its selection estimates, a control guided by feature tweaking reaching a similar effect once a counterfactual has been computed. On real data, a recovery shows that one crossing turns a wrong prediction into the true class, not that the predicate caused the error. Nor did the identified predicates support a repair without retraining, since locating a problem tells an analyst where to look, for example which rule a group of trees learned around which 27 threshold, but turning it into a better model requires more evidence than the few errors that reveal it [4]. The local DPG is not compact, and its usefulness to people, including the context, coherence and continuity of its explanations, was not evaluated. We therefore regard the graph as a verifiable record of the computation, in which rules, trees and competing routes can be inspected, and the critical predicate, which is selected from the traces themselves, as the element offered to a person. 
+
+6.3. Limitations 
+
+The critical predicate relies on predicates shared by several trees, and sharing varies widely. The average predicate is executed by 1.05 to 28.7 trees depending on the dataset and family (Table S14 of the supplementary mate-rial), and in random forests by only 1.05 to 2.37 trees outside iris. The flip rate rises with sharing in some families and not in others (Spearman corre-lation over datasets from 0.05 to 0.47), so the reuse of thresholds explains the effect only in part, and the result is not driven by datasets with discrete values such as digits, since without it the critical predicate still flips more often than the TreeSHAP-guided predicate on all 15 remaining datasets in every family. Ensembles that draw their thresholds at random rarely share a predicate and would require grouping thresholds into intervals. More gen-erally, the method is defined for classification with numeric features, and regression, categorical splits and other gradient-boosting variants would re-quire extensions. The repair experiment covers four operators and a single acceptance rule, runtimes were measured on a shared machine and indicate orders of magnitude only, and Anchors and LORE were evaluated on a subset of samples and repetitions. Finally, the properties that depend on users call for a human-centred evaluation, such as those that compare rule-based and example-based explanations [57, 58]. 
+
+7. Conclusion 
+
+This paper has addressed the logical structure behind a prediction of a tree ensemble. The local DPG represents the predicates the trees executed for a sample, records which trees executed each of them, and derives a class support that reproduces the prediction, and the critical predicate selects the executed predicate whose crossing is estimated to move the prediction most strongly toward a chosen class. 28 Across the four ensemble families studied, and without an external ex-plainer, the critical predicate exceeds random and nearest-threshold predi-cates on measures that do not involve its selection, and its estimated gain carries over to the whole model. A single crossing recovers the true class of a wrong prediction in 46–69% of cases, against 29–50% when the same rule is applied to the feature ranked first by contrastive TreeSHAP, and the crossed samples are about as atypical as counterfactuals. On planted faults it finds the threshold of the fault in 46–71% of the wrong predictions they cause. It therefore complements attributions and counterfactuals by naming a threshold and the trees at which a prediction responds to a single-feature change. Training-free edits of the predicates it localises did not reduce the error on unseen data. The graph is not compact and serves as a verifiable record of the computation, while the critical predicate is the element offered to the user. Several directions remain open, among them extensions to regression, cat-egorical splits and histogram-based gradient boosting, repairs that combine the localisation with additional data collected around the identified thresh-olds, the measurement of the continuity of explanations across similar inputs, and a user study addressing context, coherence and controllability. 
+
+CRediT authorship contribution statement Sylvio Barbon Junior: Conceptualization, Methodology, Software, In-vestigation, Formal analysis, Writing – original draft. Luca Longo: Valida-tion, Writing – review & editing. 
+
+Declaration of competing interest 
+
+The authors declare that they have no known competing financial inter-ests or personal relationships that could have appeared to influence the work reported in this paper. 
+
+Data and code availability 
+
+All datasets are public. The implementation and the experiment pipeline, with fixed splits and per-sample results, are available on Zenodo [50] at 
+
+https://doi.org/10.5281/zenodo.24201497 .29 Declaration of generative AI and AI-assisted technologies in the writing process 
+
+During the preparation of this work the authors used Claude (Anthropic) for grammatical correction. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article. 
+
+Funding 
+
+This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors. 
+
+Appendix A. Notation Appendix B. Class support per family 
+
+For random forests and bagging, z0 = 0 , each vb(x) is the class distribution of the leaf reached in tree b divided by B, and g is the identity, so that Sx
+
+coincides with the model’s predicted probabilities, and ob(x) is the majority class of the leaf. For bagging, the feature indices of each tree are first mapped back to the full feature space. In AdaBoost with SAMME, z0 = 0 and 
+
+vb(x) = ( wb/ P 
+
+> b′
+
+wb′ ) eob(x), where wb is the weight of tree b, ec is the indicator vector of class c and ob(x) is the majority class of the leaf. The link g is again the identity and Sx is the weighted vote share, which has the same maximiser as the model’s decision score, an increasing affine transformation of it. In gradient boosting, z0 is the initial raw score, vb(x) is the leaf value of the regression tree b multiplied by the learning rate and placed in the slot of its class, and g is the logistic or softmax link, so that Sx again equals the predicted probabilities. Here ob(x) is the class indicated by the sign of the leaf value in binary problems and the class of the tree in multiclass problems, where one tree is grown per class at every stage. 
+
+References 
+
+[1] S. M. Lundberg, G. Erion, H. Chen, A. DeGrave, J. M. Prutkin, B. Nair, R. Katz, J. Himmelfarb, N. Bansal, S.-I. Lee, From local explanations to global understanding with explainable AI for trees, Nature Machine Intelligence 2 (2020) 56–67. doi: 10.1038/s42256-019-0138-9 .30 Table A.1: Notation used in the paper. Symbol Meaning Symbol Meaning 
+
+Model and data Model output 
+
+C = {c1, . . . , c K } set of K classes vb(x) contribution of tree Tb
+
+F = {T1, . . . , T B } ensemble of B trees z0, z(x) initial score, state of the model 
+
+x = ( x1, . . . , x d) sample with d numeric features 
+
+g link function 
+
+y true class of x, when known 
+
+Sx, Sx(c) class support, support of cD maximum depth of the trees 
+
+ˆy predicted class 
+
+Traces and predicates c† top competitor 
+
+p = ( j, θ, ◦) predicate, executed test 
+
+xj ≤ θ or xj > θ πb(x) trace of x in tree Tb Critical predicate and its use 
+
+Lb, L length of πb(x), and P 
+
+> b
+
+Lb
+
+c target class, c† or yob(x) outcome of the trace ˜xj , slack crossing value, |xj − θ|
+
+λ(p), ℓ label of a predicate x(b,ℓ ) x with ℓ crossed in tree Tb
+
+∆ℓ(c) estimated gain of ℓ toward 
+
+c, Eq. (2) 
+
+Local DPG p∗(c), p∗ critical predicate toward c,and p∗(c†)
+
+Gx local DPG of x x′, ∆P (c) crossed sample, change in the support of c
+
+route source-to-sink path of 
+
+Gx
+
+flip, recovery prediction changes, or becomes y
+
+Bℓ trees whose traces execute ℓ
+
+31 [2] G. Vilone, L. Longo, Notions of explainability and evaluation approaches for explainable artificial intelligence, Information Fusion 76 (2021) 89– 106. doi: 10.1016/j.inffus.2021.05.009 .[3] L. Longo, M. Brcic, F. Cabitza, J. Choi, R. Confalonieri, J. Del Ser, R. Guidotti, Y. Hayashi, F. Herrera, A. Holzinger, R. Jiang, H. Khosravi, F. Lecue, G. Malgieri, A. Páez, W. Samek, J. Schneider, T. Speith, S. Stumpf, Explainable artificial intelligence (XAI) 2.0: A manifesto of open challenges and interdisciplinary research directions, Information Fusion 106 (2024) 102301. doi: 10.1016/j.inffus.2024.102301 .[4] A. Adadi, M. Berrada, Peeking inside the black-box: A survey on ex-plainable artificial intelligence (XAI), IEEE Access 6 (2018) 52138– 52160. doi: 10.1109/ACCESS.2018.2870052 .[5] U. Bhatt, A. Xiang, S. Sharma, A. Weller, A. Taly, Y. Jia, J. Ghosh, R. Puri, J. M. F. Moura, P. Eckersley, Explainable machine learning in deployment, in: Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency, 2020, pp. 648–657. doi: 10.1145/ 3351095.3375624 .[6] H. Kaur, H. Nori, S. Jenkins, R. Caruana, H. Wallach, J. Wort-man Vaughan, Interpreting interpretability: Understanding data scien-tists’ use of interpretability tools for machine learning, in: Proceedings of the 2020 CHI Conference on Human Factors in Computing Systems, 2020, pp. 1–14. doi: 10.1145/3313831.3376219 .[7] B. Nushi, E. Kamar, E. Horvitz, Towards accountable AI: Hybrid human-machine analyses for characterizing system failure, in: Proceed-ings of the AAAI Conference on Human Computation and Crowdsourc-ing, volume 6, 2018, pp. 126–135. doi: 10.1609/hcomp.v6i1.13337 .[8] T. Kulesza, M. Burnett, W.-K. Wong, S. Stumpf, Principles of explana-tory debugging to personalize interactive machine learning, in: Proceed-ings of the 20th International Conference on Intelligent User Interfaces, 2015, pp. 126–137. doi: 10.1145/2678025.2701399 .[9] S. M. Lundberg, S.-I. Lee, A unified approach to interpreting model predictions, Advances in Neural Information Processing Systems 30 (2017) 4765–4774. 32 [10] M. T. Ribeiro, S. Singh, C. Guestrin, “why should i trust you?”: Ex-plaining the predictions of any classifier, in: Proc. of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 2016, pp. 1135–1144. doi: 10.1145/2939672.2939778 .[11] S. Wachter, B. Mittelstadt, C. Russell, Counterfactual explanations without opening the black box: Automated decisions and the GDPR, Harvard Journal of Law & Technology 31 (2018) 841–887. [12] G. Tolomei, F. Silvestri, A. Haines, M. Lalmas, Interpretable predictions of tree-based ensembles via actionable feature tweaking, in: Proceed-ings of the 23rd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 2017, pp. 465–474. doi: 10.1145/3097983. 3098039 .[13] A. Parmentier, T. Vidal, Optimal counterfactual explanations in tree ensembles, in: Proceedings of the 38th International Conference on Machine Learning, volume 139 of Proceedings of Machine Learning Re-search , 2021, pp. 8422–8431. [14] R. Guidotti, A. Monreale, S. Ruggieri, D. Pedreschi, F. Turini, F. Gi-annotti, Factual and counterfactual explanations for black box decision making, IEEE Intelligent Systems 34 (2019) 14–23. doi: 10.1109/MIS. 2019.2957223 .[15] J. Hatwell, M. M. Gaber, R. M. A. Azad, CHIRPS: Explaining random forest classification, Artificial Intelligence Review 53 (2020) 5747–5788. doi: 10.1007/s10462-020-09833-6 .[16] I. Mollas, N. Bassiliades, G. Tsoumakas, Conclusive local interpretation rules for random forests, Data Mining and Knowledge Discovery 36 (2022) 1521–1574. doi: 10.1007/s10618-022-00839-y .[17] Y. Izza, J. Marques-Silva, On explaining random forests with SAT, in: Proceedings of the Thirtieth International Joint Conference on Artificial Intelligence (IJCAI), 2021, pp. 2584–2591. doi: 10.24963/ijcai.2021/ 356 .[18] L. Arrighi, L. Pennella, G. Marques Tavares, S. Barbon Junior, Deci-sion predicate graphs: Enhancing interpretability in tree ensembles, in: 33 World Conf. on Explainable Artificial Intelligence, Springer, 2024, pp. 311–332. doi: 10.1007/978-3-031-63797-1_16 .[19] C. Fernández-Loría, F. Provost, X. Han, Explaining data-driven deci-sions made by AI systems: The counterfactual approach, MIS Quarterly 46 (2022) 1635–1660. doi: 10.25300/MISQ/2022/16749 .[20] R. K. Mothilal, D. Mahajan, C. Tan, A. Sharma, Towards unifying feature attribution and counterfactual explanations: Different means to the same end, in: Proceedings of the 2021 AAAI/ACM Conference on AI, Ethics, and Society, 2021, pp. 652–663. doi: 10.1145/3461702. 3462597 .[21] D. S. Watson, L. Gultchin, A. Taly, L. Floridi, Local explanations via necessity and sufficiency: Unifying theory and practice, in: Proceedings of the Thirty-Seventh Conference on Uncertainty in Artificial Intelli-gence, volume 161 of Proceedings of Machine Learning Research , 2021, pp. 1382–1392. [22] I. E. Kumar, S. Venkatasubramanian, C. Scheidegger, S. Friedler, Prob-lems with Shapley-value-based explanations as feature importance mea-sures, in: Proceedings of the 37th International Conference on Machine Learning, volume 119 of Proceedings of Machine Learning Research ,2020, pp. 5491–5500. [23] X. Huang, J. Marques-Silva, On the failings of Shapley values for ex-plainability, International Journal of Approximate Reasoning 171 (2024) 109112. doi: 10.1016/j.ijar.2023.109112 .[24] T. Miller, Explanation in artificial intelligence: Insights from the social sciences, Artificial Intelligence 267 (2019) 1–38. URL: https://www. sciencedirect.com/science/article/pii/S0004370218305988 .doi: 10.1016/j.artint.2018.07.007 .[25] E. Poeta, G. Ciravegna, E. Pastor, T. Cerquitelli, E. Baralis, Concept-based explainable artificial intelligence: A survey, ACM Computing Surveys 58 (2026) 1–36. doi: 10.1145/3774643 .[26] A. Barredo Arrieta, N. Díaz-Rodríguez, J. Del Ser, A. Bennetot, S. Tabik, A. Barbado, S. García, S. Gil-López, D. Molina, R. Benjamins, 34 R. Chatila, F. Herrera, Explainable artificial intelligence (XAI): Con-cepts, taxonomies, opportunities and challenges toward responsible AI, Information Fusion 58 (2020) 82–115. doi: 10.1016/j.inffus.2019.12. 012 .[27] H. Deng, Interpreting tree ensembles with inTrees, International Jour-nal of Data Science and Analytics 7 (2019) 277–287. doi: 10.1007/ s41060-018-0144-8 .[28] C. Bénard, G. Biau, S. Da Veiga, E. Scornet, SIRUS: Stable and inter-pretable RUle set for classification, Electronic Journal of Statistics 15 (2021) 427–505. doi: 10.1214/20-EJS1792 .[29] J. H. Friedman, B. E. Popescu, Predictive learning via rule ensembles, The Annals of Applied Statistics 2 (2008) 916–954. URL: https: //projecteuclid.org/journals/annals-of-applied-statistics/ volume-2/issue-3/Predictive-learning-via-rule-ensembles/ 10.1214/07-AOAS148.full . doi: 10.1214/07-AOAS148 .[30] T. Vidal, M. Schiffer, Born-again tree ensembles, in: Proceedings of the 37th International Conference on Machine Learning, volume 119 of 
+
+Proceedings of Machine Learning Research , 2020, pp. 9743–9753. [31] O. Sagi, L. Rokach, Explainable decision forest: Transforming a decision forest into an interpretable tree, Information Fusion 61 (2020) 124–138. doi: 10.1016/j.inffus.2020.03.013 .[32] M. Aria, A. Gnasso, C. Iorio, G. Pandolfo, Explainable ensem-ble trees, Computational Statistics 39 (2024) 3–19. doi: 10.1007/ s00180-022-01312-6 .[33] M. Ceschin, L. Arrighi, L. Longo, S. Barbon Junior, Extending decision predicate graphs for comprehensive explanation of isolation forest, in: World Conf. on Explainable Artificial Intelligence, Springer, 2025, pp. 271–293. doi: 10.1007/978-3-032-08324-1_12 .[34] K. Dedja, F. K. Nakano, K. Pliakos, C. Vens, BELLATREX: Building explanations through a LocaLly AccuraTe Rule EXtractor, IEEE Access 11 (2023) 41348–41367. doi: 10.1109/ACCESS.2023.3268866 .35 [35] G. Audemard, S. Bellart, L. Bounia, F. Koriche, J.-M. Lagniez, P. Mar-quis, Trading complexity for sparsity in random forest explanations, in: Proceedings of the AAAI Conference on Artificial Intelligence, vol-ume 36, 2022, pp. 5461–5469. doi: 10.1609/aaai.v36i5.20484 .[36] A. Ignatiev, N. Narodytska, N. Asher, J. Marques-Silva, From con-trastive to abductive explanations and back again, in: AIxIA 2020 – Ad-vances in Artificial Intelligence, volume 12414 of Lecture Notes in Com-puter Science , 2021, pp. 335–355. doi: 10.1007/978-3-030-77091-4_ 21 .[37] A. Darwiche, A. Hirth, On the reasons behind decisions, in: Proceed-ings of the 24th European Conference on Artificial Intelligence (ECAI), Frontiers in Artificial Intelligence and Applications, IOS Press, 2020, pp. 712–720. doi: 10.3233/FAIA200158 .[38] N. Potyka, X. Yin, F. Toni, Explaining random forests using bipolar argumentation and Markov networks, in: Proceedings of the AAAI Conference on Artificial Intelligence, volume 37, 2023, pp. 9453–9460. doi: 10.1609/aaai.v37i8.26132 .[39] A. Palczewska, J. Palczewski, R. M. Robinson, D. Neagu, Interpreting random forest classification models using a feature contribution method, in: Proceedings of the 2014 International Conference on Information Reuse and Integration (IRI), 2014, pp. 112–119. doi: 10.1109/IRI.2014. 7051917 .[40] M. T. Ribeiro, S. Singh, C. Guestrin, Anchors: High-precision model-agnostic explanations, in: Proceedings of the AAAI Confer-ence on Artificial Intelligence (AAAI), volume 32, 2018, pp. 1527– 1535. URL: https://ojs.aaai.org/index.php/AAAI/article/view/ 11491 . doi: 10.1609/aaai.v32i1.11491 .[41] R. Guidotti, A. Monreale, S. Ruggieri, F. Naretto, F. Turini, D. Pe-dreschi, F. Giannotti, Stable and actionable explanations of black-box models through factual and counterfactual rules, Data Mining and Knowledge Discovery 38 (2024) 2825–2862. URL: https://doi.org/ 10.1007/s10618-022-00878-5 . doi: 10.1007/s10618-022-00878-5 .36 [42] A. Lucic, H. Oosterhuis, H. Haned, M. de Rijke, FOCUS: Flexible opti-mizable counterfactual explanations for tree ensembles, in: Proceedings of the AAAI Conference on Artificial Intelligence, volume 36, 2022, pp. 5313–5322. doi: 10.1609/aaai.v36i5.20468 .[43] A. Kantchelian, J. D. Tygar, A. Joseph, Evasion and hardening of tree ensemble classifiers, in: Proceedings of the 33rd International Confer-ence on Machine Learning, volume 48 of Proceedings of Machine Learn-ing Research , 2016, pp. 2387–2396. [44] H. Chen, H. Zhang, S. Si, Y. Li, D. Boning, C.-J. Hsieh, Robustness verification of tree-based models, in: Advances in Neural Information Processing Systems, volume 32, 2019, pp. 12317–12328. [45] L. Rizzo, D. Verda, S. Berretta, L. Longo, A novel integration of data-driven rule generation and computational argumentation for en-hanced explainable ai, Machine Learning and Knowledge Extraction 6 (2024) 2049–2073. URL: https://www.mdpi.com/2504-4990/6/3/101 .doi: 10.3390/make6030101 .[46] K. Främling, Feature importance versus feature influence and what it signifies for explainable AI, in: Explainable Artificial Intel-ligence. xAI 2023, volume 1901 of Communications in Computer and Information Science , Springer, 2023, pp. 241–259. doi: 10.1007/ 978-3-031-44064-9_14 .[47] G. Vilone, L. Rizzo, L. Longo, A comparative analysis of rule-based, model-agnostic methods for explainable artificial intelligence, in: L. Longo, L. Rizzo, E. Hunter, A. Pakrashi (Eds.), Proceedings of The 28th Irish Conference on Artificial Intelligence and Cognitive Science, Dublin, Republic of Ireland, December 7-8, 2020, volume 2771 of CEUR Workshop Proceedings , CEUR-WS.org, 2020, pp. 85–96. URL: 
+
+http://ceur-ws.org/Vol-2771/AICS2020_paper_33.pdf .[48] J. Vanschoren, J. N. van Rijn, B. Bischl, L. Torgo, OpenML: Networked science in machine learning, SIGKDD Explorations 15 (2014) 49–60. doi: 10.1145/2641190.2641198 .[49] D. Dua, C. Graff, UCI machine learning repository, http://archive. ics.uci.edu/ml , 2019. 37 [50] S. Barbon Junior, L. Longo, Local decision predicate graphs: code, data and results, v1.0.0 [software], Zenodo, 2026. doi: 10.5281/zenodo. 24201497 .[51] M. Nauta, J. Trienes, S. Pathak, E. Nguyen, M. Peters, Y. Schmitt, J. Schlötterer, M. van Keulen, C. Seifert, From anecdotal evidence to quantitative evaluation methods: A systematic review on evaluating explainable ai, ACM Computing Surveys 55 (2023) 1–42. doi: 10.1145/ 3583558 .[52] F. Doshi-Velez, B. Kim, Towards a rigorous science of interpretable machine learning, arXiv preprint arXiv:1702.08608 (2017). URL: https: //arxiv.org/abs/1702.08608 . doi: 10.48550/arXiv.1702.08608 .[53] S. Krishna, T. Han, A. Gu, S. Wu, S. Jabbari, H. Lakkaraju, The disagreement problem in explainable machine learning: A practitioner’s perspective, Transactions on Machine Learning Research (2024). [54] S. Holm, A simple sequentially rejective multiple test procedure, Scan-dinavian Journal of Statistics 6 (1979) 65–70. [55] J. Demšar, Statistical comparisons of classifiers over multiple data sets, Journal of Machine Learning Research 7 (2006) 1–30. [56] S. Teso, K. Kersting, Explanatory interactive machine learning, in: Proceedings of the 2019 AAAI/ACM Conference on AI, Ethics, and Society, 2019, pp. 239–245. doi: 10.1145/3306618.3314293 .[57] J. van der Waa, E. Nieuwburg, A. Cremers, M. Neerincx, Evaluat-ing XAI: A comparison of rule-based and example-based explanations, Artificial Intelligence 291 (2021) 103404. doi: 10.1016/j.artint.2020. 103404 .[58] G. Vilone, L. Longo, Development of a human-centred psychometric test for the evaluation of explanations produced by xai methods, in: L. Longo (Ed.), Explainable Artificial Intelligence, Springer Nature Switzerland, Cham, 2023, pp. 205–232. 38
